@@ -23,9 +23,9 @@ export async function loginUser(credentials) {
 }
 
 export async function socialLogin(provider) {
-  // Possibly redirect to backend endpoint for OAuth2 flow
-  window.location.href = `${API_URL}/oauth2/authorize/${provider}`;
-}
+    // Directly redirect to the Spring Boot OAuth2 endpoint
+    window.location.href = `${API_URL}/oauth2/authorization/${provider}`;
+  }
 
 export async function forgotPassword(email) {
   return axios.post(`${API_URL}/auth/forgot-password`, { email });

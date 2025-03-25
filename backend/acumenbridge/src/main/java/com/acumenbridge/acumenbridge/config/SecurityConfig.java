@@ -11,11 +11,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/", "/hello").permitAll()  // Allow access to these endpoints
+            // Disable CSRF for stateless REST APIs
+            .csrf(csrf -> csrf.disable())
+
+            // Authorize requests
+            .authorizeHttpRequests(auth -> auth
+                // Permit all to these endpoints
+                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/", "/css/**", "/js/**", "/images/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .formLogin(form -> form
+            // Disable default form login
+            .formLogin(form -> form.disable())
+
+            // If using OAuth2, define custom login page or skip
+            .oauth2Login(oauth2 -> oauth2
+                .loginPage("/my-custom-login")
                 .permitAll()
             )
             .logout(logout -> logout.permitAll());

@@ -9,16 +9,17 @@ public class User {
     private String id;
     private String name;
     private String email;
+    private String password; // Store the hashed password
 
-    // Constructors
-    public User() { }
+    public User() {}
 
-    public User(String name, String email) {
+    public User(String name, String email, String password) {
         this.name = name;
         this.email = email;
+        this.password = password;
     }
 
-    // Getters and Setters
+    // Getters and setters
     public String getId() {
         return id;
     }
@@ -36,5 +37,11 @@ public class User {
     }
     public void setEmail(String email) {
         this.email = email;
+    }
+    public String getPassword() {
+        return password;
+    }
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
