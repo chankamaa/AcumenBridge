@@ -16,19 +16,29 @@ public class SecurityConfig {
 
             // Authorize requests
             .authorizeHttpRequests(auth -> auth
-                // Permit all to these endpoints
+                // Permit manual auth endpoints (e.g., /auth/register, /auth/login)
                 .requestMatchers("/auth/**").permitAll()
+                // Permit OAuth2 endpoints (e.g., /oauth2/authorization/google, etc.)
+                .requestMatchers("/oauth2/**").permitAll()
+                // Permit your custom login page (GET /my-custom-login)
+                .requestMatchers("/my-custom-login").permitAll()
+                // Permit static resources
                 .requestMatchers("/", "/css/**", "/js/**", "/images/**").permitAll()
+                // Everything else requires authentication
                 .anyRequest().authenticated()
             )
-            // Disable default form login
+            // Disable default form login so that our custom login is used
             .formLogin(form -> form.disable())
-
-            // If using OAuth2, define custom login page or skip
+            // Configure OAuth2 login to use our custom login page and set a success handler
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/my-custom-login")
+                .successHandler((request, response, authentication) -> {
+                    // Redirect to your React home page after successful login
+                    response.sendRedirect("http://localhost:5173/home");
+                })
                 .permitAll()
             )
+            // Allow logout for everyone
             .logout(logout -> logout.permitAll());
 
         return http.build();

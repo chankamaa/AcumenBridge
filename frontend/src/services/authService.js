@@ -9,11 +9,12 @@ export async function registerUser(userData) {
 }
 
 export async function sendOtp(email) {
-  // Endpoint to trigger sending an OTP to the given email
+  // Sends OTP to the provided email address
   return axios.post(`${API_URL}/auth/send-otp`, { email });
 }
 
 export async function verifyOtp(email, otp) {
+  // Verifies the OTP for the given email
   return axios.post(`${API_URL}/auth/verify-otp`, { email, otp });
 }
 
@@ -23,9 +24,9 @@ export async function loginUser(credentials) {
 }
 
 export async function socialLogin(provider) {
-    // Directly redirect to the Spring Boot OAuth2 endpoint
-    window.location.href = `${API_URL}/oauth2/authorization/${provider}`;
-  }
+  // Redirects directly to the OAuth2 endpoint for the provider
+  window.location.href = `${API_URL}/oauth2/authorization/${provider}`;
+}
 
 export async function forgotPassword(email) {
   return axios.post(`${API_URL}/auth/forgot-password`, { email });

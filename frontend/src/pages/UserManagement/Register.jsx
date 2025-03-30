@@ -10,11 +10,11 @@ function Register() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [isVerified, setIsVerified] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
   const [strength, setStrength] = useState(0);
   const [message, setMessage] = useState('');
 
   // Basic password strength logic
-  // For a more robust approach, consider using zxcvbn
   const evaluatePasswordStrength = (pass) => {
     let score = 0;
     if (pass.length >= 8) score++;
@@ -30,16 +30,27 @@ function Register() {
     setStrength(evaluatePasswordStrength(val));
   };
 
+  // Send OTP endpoint: verifies that email is entered first.
   const handleSendOtp = async () => {
+    if (!email) {
+      setMessage('Please enter your email before sending OTP.');
+      return;
+    }
     try {
       await sendOtp(email);
+      setOtpSent(true);
       setMessage('OTP sent to your email. Check your inbox.');
     } catch (err) {
       setMessage(err.response?.data?.message || 'Error sending OTP');
     }
   };
 
+  // Verify OTP endpoint
   const handleVerifyOtp = async () => {
+    if (otp.length < 6) {
+      setMessage('OTP must be at least 6 digits.');
+      return;
+    }
     try {
       await verifyOtp(email, otp);
       setIsVerified(true);
@@ -49,6 +60,7 @@ function Register() {
     }
   };
 
+  // Register endpoint; only allow registration if OTP is verified and passwords match.
   const handleRegister = async () => {
     if (!isVerified) {
       setMessage('Please verify your email first with the OTP.');
@@ -74,7 +86,7 @@ function Register() {
         marginTop: 5,
         display: 'flex',
         flexDirection: 'column',
-        gap: 2
+        gap: 2,
       }}
     >
       <Typography variant="h4" textAlign="center">Register</Typography>
@@ -97,11 +109,20 @@ function Register() {
           variant="outlined"
           value={otp}
           onChange={(e) => setOtp(e.target.value)}
+          disabled={isVerified}
         />
-        <Button variant="contained" onClick={handleSendOtp}>
-          Send OTP
+        <Button
+          variant="contained"
+          onClick={handleSendOtp}
+          disabled={otpSent || isVerified}
+        >
+          {otpSent ? "OTP Sent" : "Send OTP"}
         </Button>
-        <Button variant="outlined" onClick={handleVerifyOtp}>
+        <Button
+          variant="outlined"
+          onClick={handleVerifyOtp}
+          disabled={!otpSent || isVerified}
+        >
           Verify OTP
         </Button>
       </Box>
