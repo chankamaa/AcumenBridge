@@ -7,11 +7,12 @@ import {
   Typography,
   Divider,
   useTheme,
+  CircularProgress,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { loginUser, socialLogin } from '../../services/authService';
 
-// Logo Imports (adjust paths as needed)
+// Logo Imports
 import GoogleLogo from '../../assets/google-logo.svg';
 import FacebookLogo from '../../assets/facebook-logo.svg';
 import GitHubLogo from '../../assets/github-logo.svg';
@@ -19,23 +20,24 @@ import GitHubLogo from '../../assets/github-logo.svg';
 function Login() {
   const theme = useTheme();
   const navigate = useNavigate();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    setLoading(true);
+    setMessage('');
     try {
       await loginUser({ email, password });
-      // On success, redirect or set global auth state
-      navigate('/'); // or any other route
+      navigate('/'); // On success, redirect to home or desired route
     } catch (err) {
       setMessage(err.response?.data?.message || 'Login failed');
+      setLoading(false);
     }
   };
 
   const handleSocialLogin = (provider) => {
-    // This should redirect to your backend’s OAuth2 endpoint
     socialLogin(provider);
   };
 
@@ -80,8 +82,10 @@ function Login() {
         variant="contained"
         onClick={handleLogin}
         sx={{ textTransform: 'none', fontWeight: 'bold' }}
+        fullWidth
+        disabled={loading}
       >
-        Login
+        {loading ? <CircularProgress size={24} color="inherit" /> : 'Login'}
       </Button>
 
       {message && (
@@ -113,11 +117,7 @@ function Login() {
         variant="contained"
         onClick={() => handleSocialLogin('google')}
         startIcon={
-          <img
-            src={GoogleLogo}
-            alt="Google"
-            style={{ width: 24, height: 24 }}
-          />
+          <img src={GoogleLogo} alt="Google" style={{ width: 24, height: 24 }} />
         }
         sx={{
           backgroundColor: '#fff',
@@ -125,9 +125,8 @@ function Login() {
           border: '1px solid #ddd',
           textTransform: 'none',
           fontWeight: 'bold',
-          '&:hover': {
-            backgroundColor: '#f5f5f5',
-          },
+          '&:hover': { backgroundColor: '#f5f5f5' },
+          fullWidth: true,
         }}
       >
         Continue with Google
@@ -137,21 +136,16 @@ function Login() {
         variant="contained"
         onClick={() => handleSocialLogin('facebook')}
         startIcon={
-          <img
-            src={FacebookLogo}
-            alt="Facebook"
-            style={{ width: 24, height: 24 }}
-          />
+          <img src={FacebookLogo} alt="Facebook" style={{ width: 24, height: 24 }} />
         }
         sx={{
-            backgroundColor: '#fff',
-            color: '#555',
-            border: '1px solid #ddd',
-            textTransform: 'none',
-            fontWeight: 'bold',
-            '&:hover': {
-              backgroundColor: '#f5f5f5',
-            },
+          backgroundColor: '#fff',
+          color: '#555',
+          border: '1px solid #ddd',
+          textTransform: 'none',
+          fontWeight: 'bold',
+          '&:hover': { backgroundColor: '#f5f5f5' },
+          fullWidth: true,
         }}
       >
         Continue with Facebook
@@ -161,21 +155,16 @@ function Login() {
         variant="contained"
         onClick={() => handleSocialLogin('github')}
         startIcon={
-          <img
-            src={GitHubLogo}
-            alt="GitHub"
-            style={{ width: 24, height: 24 }}
-          />
+          <img src={GitHubLogo} alt="GitHub" style={{ width: 24, height: 24 }} />
         }
         sx={{
-            backgroundColor: '#fff',
-            color: '#555',
-            border: '1px solid #ddd',
-            textTransform: 'none',
-            fontWeight: 'bold',
-            '&:hover': {
-              backgroundColor: '#f5f5f5',
-            },
+          backgroundColor: '#fff',
+          color: '#555',
+          border: '1px solid #ddd',
+          textTransform: 'none',
+          fontWeight: 'bold',
+          '&:hover': { backgroundColor: '#f5f5f5' },
+          fullWidth: true,
         }}
       >
         Continue with GitHub

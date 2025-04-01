@@ -7,6 +7,7 @@ import ForgotPassword from './pages/UserManagement/ForgotPassword';
 import ResetPassword from './pages/UserManagement/ResetPassword';
 import NavigationBar from './components/NavigationBar/NavigationBar';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
+import Home from './pages/Home/Home';
 
 function App() {
   return (
@@ -14,7 +15,7 @@ function App() {
       <Router>
       <NavigationBar />
         <Routes>
-          <Route path="/" element={<div>Home</div>} />
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

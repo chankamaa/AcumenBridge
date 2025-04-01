@@ -4,11 +4,15 @@ import com.acumenbridge.acumenbridge.models.User;
 import com.acumenbridge.acumenbridge.repositories.UserRepository;
 import com.acumenbridge.acumenbridge.services.EmailService;
 import com.acumenbridge.acumenbridge.services.OTPService;
+import com.acumenbridge.acumenbridge.services.JwtService;
 import com.acumenbridge.acumenbridge.utils.OTPUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -24,6 +28,9 @@ public class AuthController {
     @Autowired
     private OTPService otpService;
 
+    @Autowired
+    private JwtService jwtService;
+
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // Registration endpoint
@@ -37,9 +44,9 @@ public class AuthController {
         return ResponseEntity.ok("User registered successfully!");
     }
 
-    // Login endpoint
+    // Login endpoint with JWT token generation
     @PostMapping("/login")
-    public ResponseEntity<String> loginUser(@RequestBody User loginRequest) {
+    public ResponseEntity<?> loginUser(@RequestBody User loginRequest) {
         var userOptional = userRepository.findByEmail(loginRequest.getEmail());
         if (userOptional.isEmpty()) {
             return ResponseEntity.badRequest().body("Invalid credentials.");
@@ -48,7 +55,12 @@ public class AuthController {
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             return ResponseEntity.badRequest().body("Invalid credentials.");
         }
-        return ResponseEntity.ok("Login successful!");
+        // Generate JWT token
+        String token = jwtService.generateToken(user);
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Login successful!");
+        response.put("token", token);
+        return ResponseEntity.ok(response);
     }
 
     // OTP sending endpoint
@@ -60,7 +72,7 @@ public class AuthController {
         }
         // Generate OTP
         String otp = OTPUtil.generateOTP();
-        // Store OTP
+        // Store OTP temporarily
         otpService.storeOTP(email, otp);
         // Send OTP via email
         emailService.sendOtpEmail(email, otp);

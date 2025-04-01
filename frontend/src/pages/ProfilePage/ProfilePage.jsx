@@ -1,34 +1,54 @@
 // src/pages/ProfilePage.jsx
-import React, { useState } from 'react';
-import { Box, Container } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Container, CircularProgress } from '@mui/material';
 import ProfileBanner from '../../components/Profile/ProfileBanner';
 import ProfileActions from '../../components/Profile/ProfileActions';
 import EditProfileDialog from '../../components/Profile/EditProfileDialog';
+import { getUserProfile } from '../../services/authService';
 
 function ProfilePage() {
-  // Example user data
-  const user = {
-    name: 'Chankama Gunasekara',
-    email: 't1@chankama.me',
-    avatar: 'https://via.placeholder.com/80',
-    subtitle: 'Attended nalanda college',
-  };
-
+  const [user, setUser] = useState(null);
   const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleOpenEdit = () => {
-    setOpenEditDialog(true);
-  };
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await getUserProfile();
+        setUser(response.data);
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
-  const handleCloseEdit = () => {
-    setOpenEditDialog(false);
-  };
+  const handleOpenEdit = () => setOpenEditDialog(true);
+  const handleCloseEdit = () => setOpenEditDialog(false);
 
   const handleSaveProfile = (updatedData) => {
     console.log('Updated Profile:', updatedData);
     // TODO: Call your API to update the user profile, then update state if needed
     setOpenEditDialog(false);
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Box sx={{ textAlign: 'center', mt: 10 }}>
+        <p>Error: User not found</p>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ backgroundColor: '#f5f5f5', minHeight: '100vh' }}>

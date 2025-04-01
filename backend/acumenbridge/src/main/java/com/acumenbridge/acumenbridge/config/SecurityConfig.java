@@ -1,46 +1,69 @@
 package com.acumenbridge.acumenbridge.config;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import io.jsonwebtoken.security.Keys;
 
 @Configuration
 public class SecurityConfig {
 
+    // This secret should match the one used in your JwtService for generating tokens
+    private final String secretKey = "mySuperSecretKeyThatShouldBeLongEnoughForHS256";
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // Disable CSRF for stateless REST APIs
+            .cors().configurationSource(corsConfigurationSource()).and()
             .csrf(csrf -> csrf.disable())
-
-            // Authorize requests
             .authorizeHttpRequests(auth -> auth
-                // Permit manual auth endpoints (e.g., /auth/register, /auth/login)
-                .requestMatchers("/auth/**").permitAll()
-                // Permit OAuth2 endpoints (e.g., /oauth2/authorization/google, etc.)
-                .requestMatchers("/oauth2/**").permitAll()
-                // Permit your custom login page (GET /my-custom-login)
-                .requestMatchers("/my-custom-login").permitAll()
-                // Permit static resources
-                .requestMatchers("/", "/css/**", "/js/**", "/images/**").permitAll()
-                // Everything else requires authentication
+                .requestMatchers("/auth/**", "/oauth2/**", "/my-custom-login", "/", "/css/**", "/js/**", "/images/**").permitAll()
                 .anyRequest().authenticated()
             )
-            // Disable default form login so that our custom login is used
-            .formLogin(form -> form.disable())
-            // Configure OAuth2 login to use our custom login page and set a success handler
+            .formLogin(form -> form
+                .loginPage("/my-custom-login")
+                .permitAll()
+            )
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/my-custom-login")
                 .successHandler((request, response, authentication) -> {
-                    // Redirect to your React home page after successful login
+                    // For social login, the session should be established.
                     response.sendRedirect("http://localhost:5173/home");
                 })
                 .permitAll()
             )
-            // Allow logout for everyone
+            // Enable resource server support for JWT-based authentication (custom login)
+            .oauth2ResourceServer(oauth2 -> oauth2.jwt())
             .logout(logout -> logout.permitAll());
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(Arrays.asList("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        return NimbusJwtDecoder.withSecretKey(
+            Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8))
+        ).build();
     }
 }

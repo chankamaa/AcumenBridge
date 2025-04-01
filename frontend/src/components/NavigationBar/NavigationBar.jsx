@@ -17,13 +17,26 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 // Import your logo PNG
 import LogoImage from '../../assets/logo-acumennbridge.png';
+// Import logoutUser from authService
+import { logoutUser } from '../../services/authService';
 
 function NavigationBar() {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
+  
+  // Replace this with real user data from context or global state when available.
+  const [user, ] = useState({
+    name: 'Chankama Gunasekara',
+    avatar: '', // Empty means no avatar uploaded
+    subtitle: 'Attended Nalanda College',
+  });
+
+  // You can later load user data from your backend (for example, via getUserProfile)
+  // useEffect(() => { ... fetch and setUser ... }, []);
 
   const handleUserMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -31,13 +44,6 @@ function NavigationBar() {
 
   const handleUserMenuClose = () => {
     setAnchorEl(null);
-  };
-
-  // Example user data; in a real app, retrieve this from context or props
-  const user = {
-    name: 'Chankama Gunasekara',
-    avatar: 'https://via.placeholder.com/40',
-    subtitle: 'Attended Nalanda College',
   };
 
   const handleViewProfile = () => {
@@ -50,9 +56,10 @@ function NavigationBar() {
     navigate('/settings');
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     handleUserMenuClose();
-    // Perform logout logic here, then:
+    // Call logout function to clear token and invalidate session on backend
+    await logoutUser();
     navigate('/login');
   };
 
@@ -125,7 +132,11 @@ function NavigationBar() {
 
           {/* User Avatar */}
           <IconButton onClick={handleUserMenuOpen} color="inherit">
-            <Avatar src={user.avatar} alt={user.name} />
+            {user.avatar ? (
+              <Avatar src={user.avatar} alt={user.name} />
+            ) : (
+              <AccountCircleIcon sx={{ fontSize: 40 }} />
+            )}
           </IconButton>
         </Box>
       </Toolbar>
@@ -139,7 +150,11 @@ function NavigationBar() {
       >
         {/* Top Section: Avatar, Name, Subtitle */}
         <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
-          <Avatar src={user.avatar} alt={user.name} sx={{ width: 48, height: 48, mr: 2 }} />
+          {user.avatar ? (
+            <Avatar src={user.avatar} alt={user.name} sx={{ width: 48, height: 48, mr: 2 }} />
+          ) : (
+            <AccountCircleIcon sx={{ fontSize: 48, mr: 2, color: '#888' }} />
+          )}
           <Box>
             <Typography sx={{ fontWeight: 'bold' }}>{user.name}</Typography>
             <Typography variant="body2" color="text.secondary">

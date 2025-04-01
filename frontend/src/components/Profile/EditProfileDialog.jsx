@@ -9,6 +9,7 @@ import {
   Button,
   Box,
   Avatar,
+  Typography  // <-- Added Typography here
 } from '@mui/material';
 
 function EditProfileDialog({ open, handleClose, user, onSave }) {
@@ -128,12 +129,28 @@ function EditProfileDialog({ open, handleClose, user, onSave }) {
           </Box>
           {/* Preview Section */}
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 2 }}>
-            {avatarPreview && (
+            {avatarPreview ? (
               <Avatar
                 src={avatarPreview}
                 alt={name}
                 sx={{ width: 56, height: 56 }}
               />
+            ) : (
+              <Box
+                sx={{
+                  width: 56,
+                  height: 56,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  backgroundColor: '#eee',
+                }}
+              >
+                <Typography variant="caption" color="text.secondary">
+                  No Avatar
+                </Typography>
+              </Box>
             )}
             {bannerPreview && (
               <Box
