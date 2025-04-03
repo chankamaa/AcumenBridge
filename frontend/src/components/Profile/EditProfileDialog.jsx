@@ -9,7 +9,8 @@ import {
   Button,
   Box,
   Avatar,
-  Typography  // <-- Added Typography here
+  Typography,
+  Divider,
 } from '@mui/material';
 
 function EditProfileDialog({ open, handleClose, user, onSave }) {
@@ -24,7 +25,7 @@ function EditProfileDialog({ open, handleClose, user, onSave }) {
   const [bannerPreview, setBannerPreview] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  // When the dialog opens, initialize with the current user data
+  // Initialize state when dialog opens
   useEffect(() => {
     if (user) {
       setName(user.name);
@@ -54,13 +55,34 @@ function EditProfileDialog({ open, handleClose, user, onSave }) {
   };
 
   const handleSave = () => {
-    // Check password confirmation if a new password is entered
-    if (newPassword !== '' && newPassword !== confirmPassword) {
-      setPasswordError("New password and confirmation do not match.");
-      return;
+    // If either newPassword or confirmPassword is provided, require both and verify
+    if (newPassword !== '' || confirmPassword !== '') {
+      if (newPassword !== confirmPassword) {
+        setPasswordError("New password and confirmation do not match.");
+        return;
+      }
+      if (oldPassword === '') {
+        setPasswordError("Please enter your old password to change your password.");
+        return;
+      }
     }
-    // Optionally, add further validations for password strength or require oldPassword if newPassword is provided.
-    onSave({ name, oldPassword, newPassword, avatarFile, bannerFile });
+    
+    // Create FormData to send text fields and files
+    const formData = new FormData();
+    formData.append("name", name);
+    // Append password fields only if a new password is provided
+    if (newPassword !== '') {
+      formData.append("oldPassword", oldPassword);
+      formData.append("newPassword", newPassword);
+    }
+    if (avatarFile) {
+      formData.append("avatar", avatarFile);
+    }
+    if (bannerFile) {
+      formData.append("banner", bannerFile);
+    }
+
+    onSave(formData);
     handleClose();
   };
 
@@ -130,11 +152,7 @@ function EditProfileDialog({ open, handleClose, user, onSave }) {
           {/* Preview Section */}
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 2 }}>
             {avatarPreview ? (
-              <Avatar
-                src={avatarPreview}
-                alt={name}
-                sx={{ width: 56, height: 56 }}
-              />
+              <Avatar src={avatarPreview} alt={name} sx={{ width: 56, height: 56 }} />
             ) : (
               <Box
                 sx={{
@@ -158,7 +176,7 @@ function EditProfileDialog({ open, handleClose, user, onSave }) {
                 src={bannerPreview}
                 alt="Banner Preview"
                 sx={{
-                  height: 80,
+                  height: 100, // Increased height for banner preview
                   width: 'auto',
                   borderRadius: 1,
                   border: '1px solid #ccc',

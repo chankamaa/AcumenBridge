@@ -4,34 +4,42 @@ import { Box, Container, CircularProgress } from '@mui/material';
 import ProfileBanner from '../../components/Profile/ProfileBanner';
 import ProfileActions from '../../components/Profile/ProfileActions';
 import EditProfileDialog from '../../components/Profile/EditProfileDialog';
-import { getUserProfile } from '../../services/authService';
+import { getUserProfile, updateProfile } from '../../services/authService';
 
 function ProfilePage() {
   const [user, setUser] = useState(null);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const fetchProfile = async () => {
+    try {
+      const response = await getUserProfile();
+      setUser(response.data);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await getUserProfile();
-        setUser(response.data);
-      } catch (error) {
-        console.error('Error fetching user profile:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProfile();
   }, []);
 
   const handleOpenEdit = () => setOpenEditDialog(true);
   const handleCloseEdit = () => setOpenEditDialog(false);
 
-  const handleSaveProfile = (updatedData) => {
-    console.log('Updated Profile:', updatedData);
-    // TODO: Call your API to update the user profile, then update state if needed
-    setOpenEditDialog(false);
+  const handleSaveProfile = async (formData) => {
+    try {
+      // Call updateProfile API with FormData and update the user state with the new data.
+      const updatedUser = await updateProfile(formData);
+      setUser(updatedUser);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    } finally {
+      setOpenEditDialog(false);
+    }
   };
 
   if (loading) {

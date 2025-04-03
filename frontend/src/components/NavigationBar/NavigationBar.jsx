@@ -1,5 +1,5 @@
 // src/components/NavigationBar/NavigationBar.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -21,22 +21,32 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 // Import your logo PNG
 import LogoImage from '../../assets/logo-acumennbridge.png';
-// Import logoutUser from authService
-import { logoutUser } from '../../services/authService';
+// Import necessary functions from authService
+import { getUserProfile, logoutUser } from '../../services/authService';
+// Import AuthContext
+import { AuthContext } from '../../context/AuthContext';
 
 function NavigationBar() {
   const navigate = useNavigate();
+  const { user, setUser } = useContext(AuthContext);
   const [anchorEl, setAnchorEl] = useState(null);
-  
-  // Replace this with real user data from context or global state when available.
-  const [user, ] = useState({
-    name: 'Chankama Gunasekara',
-    avatar: '', // Empty means no avatar uploaded
-    subtitle: 'Attended Nalanda College',
-  });
 
-  // You can later load user data from your backend (for example, via getUserProfile)
-  // useEffect(() => { ... fetch and setUser ... }, []);
+  // Fetch user profile when component mounts or when the user state changes.
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const response = await getUserProfile();
+        setUser(response.data);
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+        setUser(null);
+      }
+    }
+    // If user is already not set, try fetching user profile.
+    if (!user) {
+      fetchUser();
+    }
+  }, [setUser, user]);
 
   const handleUserMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -58,8 +68,8 @@ function NavigationBar() {
 
   const handleSignOut = async () => {
     handleUserMenuClose();
-    // Call logout function to clear token and invalidate session on backend
     await logoutUser();
+    setUser(null);
     navigate('/login');
   };
 
@@ -78,16 +88,8 @@ function NavigationBar() {
     >
       <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
         {/* Left: Logo */}
-        <Box
-          sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-          onClick={handleLogoClick}
-        >
-          <Box
-            component="img"
-            src={LogoImage}
-            alt="Acumenbridge Logo"
-            sx={{ width: 80, marginRight: 1 }}
-          />
+        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={handleLogoClick}>
+          <Box component="img" src={LogoImage} alt="Acumenbridge Logo" sx={{ width: 80, marginRight: 1 }} />
           <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
             Acumenbridge
           </Typography>
@@ -110,64 +112,75 @@ function NavigationBar() {
           />
         </Box>
 
-        {/* Right: Navigation Links and User Menu */}
+        {/* Right: Conditional Rendering */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {/* Nav Links */}
-          <Button
-            color="inherit"
-            component={Link}
-            to="/"
-            sx={{ textTransform: 'none', display: { xs: 'none', md: 'inline-flex' } }}
-          >
-            Home
-          </Button>
-          <IconButton
-            color="inherit"
-            component={Link}
-            to="/notifications"
-            sx={{ display: { xs: 'none', md: 'inline-flex' } }}
-          >
-            <NotificationsIcon />
-          </IconButton>
-
-          {/* User Avatar */}
-          <IconButton onClick={handleUserMenuOpen} color="inherit">
-            {user.avatar ? (
-              <Avatar src={user.avatar} alt={user.name} />
-            ) : (
-              <AccountCircleIcon sx={{ fontSize: 40 }} />
-            )}
-          </IconButton>
+          {user ? (
+            <>
+              <Button
+                color="inherit"
+                component={Link}
+                to="/"
+                sx={{ textTransform: 'none', display: { xs: 'none', md: 'inline-flex' } }}
+              >
+                Home
+              </Button>
+              <IconButton
+                color="inherit"
+                component={Link}
+                to="/notifications"
+                sx={{ display: { xs: 'none', md: 'inline-flex' } }}
+              >
+                <NotificationsIcon />
+              </IconButton>
+              <IconButton onClick={handleUserMenuOpen} color="inherit">
+                {user.avatar ? (
+                  <Avatar src={user.avatar} alt={user.name} />
+                ) : (
+                  <AccountCircleIcon sx={{ fontSize: 40 }} />
+                )}
+              </IconButton>
+            </>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={() => navigate('/login')}
+              sx={{ textTransform: 'none', fontWeight: 'bold' }}
+            >
+              Sign In
+            </Button>
+          )}
         </Box>
       </Toolbar>
 
       {/* Dropdown Menu for User Profile */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleUserMenuClose}
-        PaperProps={{ sx: { width: 240 } }}
-      >
-        {/* Top Section: Avatar, Name, Subtitle */}
-        <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
-          {user.avatar ? (
-            <Avatar src={user.avatar} alt={user.name} sx={{ width: 48, height: 48, mr: 2 }} />
-          ) : (
-            <AccountCircleIcon sx={{ fontSize: 48, mr: 2, color: '#888' }} />
-          )}
-          <Box>
-            <Typography sx={{ fontWeight: 'bold' }}>{user.name}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {user.subtitle}
-            </Typography>
+      {user && (
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleUserMenuClose}
+          PaperProps={{ sx: { width: 240 } }}
+        >
+          {/* Top Section: Avatar, Name, Subtitle */}
+          <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
+            {user.avatar ? (
+              <Avatar src={user.avatar} alt={user.name} sx={{ width: 48, height: 48, mr: 2 }} />
+            ) : (
+              <AccountCircleIcon sx={{ fontSize: 48, mr: 2, color: '#888' }} />
+            )}
+            <Box>
+              <Typography sx={{ fontWeight: 'bold' }}>{user.name}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {user.subtitle}
+              </Typography>
+            </Box>
           </Box>
-        </Box>
-        <Divider />
-        <MenuItem onClick={handleViewProfile}>View profile</MenuItem>
-        <MenuItem onClick={handleSettings}>Settings</MenuItem>
-        <Divider />
-        <MenuItem onClick={handleSignOut}>Sign out</MenuItem>
-      </Menu>
+          <Divider />
+          <MenuItem onClick={handleViewProfile}>View profile</MenuItem>
+          <MenuItem onClick={handleSettings}>Settings</MenuItem>
+          <Divider />
+          <MenuItem onClick={handleSignOut}>Sign out</MenuItem>
+        </Menu>
+      )}
     </AppBar>
   );
 }

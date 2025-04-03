@@ -1,5 +1,6 @@
 package com.acumenbridge.acumenbridge.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import org.springframework.context.annotation.Bean;
@@ -24,8 +25,19 @@ public class SecurityConfig {
         http
             .cors().configurationSource(corsConfigurationSource()).and()
             .csrf(csrf -> csrf.disable())
+            // Return 401 (Unauthorized) for API calls instead of redirecting
+            .exceptionHandling(exception -> 
+                exception.authenticationEntryPoint((request, response, authException) ->
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
+                )
+            )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**", "/oauth2/**", "/my-custom-login", "/", "/css/**", "/js/**", "/images/**").permitAll()
+                // Public endpoints for registration, OTP, login, etc.
+                .requestMatchers("/auth/register", "/auth/send-otp", "/auth/verify-otp", "/auth/login", 
+                                  "/auth/forgot-password", "/auth/reset-password", "/oauth2/**", "/my-custom-login", 
+                                  "/", "/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
+                // Protect endpoints that require authentication
+                .requestMatchers("/auth/profile", "/auth/update-profile").authenticated()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -35,12 +47,10 @@ public class SecurityConfig {
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/my-custom-login")
                 .successHandler((request, response, authentication) -> {
-                    // For social login, the session should be established.
                     response.sendRedirect("http://localhost:5173/home");
                 })
                 .permitAll()
             )
-            // Enable resource server support for JWT-based authentication (custom login)
             .oauth2ResourceServer(oauth2 -> oauth2.jwt())
             .logout(logout -> logout.permitAll());
 

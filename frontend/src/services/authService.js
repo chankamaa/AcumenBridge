@@ -4,7 +4,6 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 export async function registerUser(userData) {
-  // userData = { name, email, password, confirmPassword }
   return axios.post(`${API_URL}/auth/register`, userData, { withCredentials: true });
 }
 
@@ -18,7 +17,6 @@ export async function verifyOtp(email, otp) {
 
 export async function loginUser(credentials) {
   const response = await axios.post(`${API_URL}/auth/login`, credentials, { withCredentials: true });
-  // If manual login returns a JWT token, store it in localStorage for future requests
   if (response.data?.token) {
     localStorage.setItem('token', response.data.token);
   }
@@ -26,7 +24,6 @@ export async function loginUser(credentials) {
 }
 
 export async function socialLogin(provider) {
-  // For social login, your backend handles session creation via OAuth2.
   window.location.href = `${API_URL}/oauth2/authorization/${provider}`;
 }
 
@@ -40,16 +37,32 @@ export async function resetPassword(token, newPassword) {
 
 export async function getUserProfile() {
   const token = localStorage.getItem('token');
-  // Conditionally include the Authorization header if token exists
   return axios.get(`${API_URL}/auth/profile`, {
     withCredentials: true,
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 }
 
+// Add and export the updateProfile function
+export async function updateProfile(formData) {
+  const token = localStorage.getItem('token');
+  try {
+    const response = await axios.put(`${API_URL}/auth/update-profile`, formData, {
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    throw error;
+  }
+}
+
 export async function logoutUser() {
   try {
-    // Call the backend logout endpoint to invalidate the session
     await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
   } catch (error) {
     console.error("Logout error:", error);
