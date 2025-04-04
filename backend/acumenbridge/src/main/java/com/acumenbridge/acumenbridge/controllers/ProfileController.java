@@ -33,24 +33,32 @@ public class ProfileController {
     public ResponseEntity<?> getProfile() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email = null;
-        
+
         if (principal instanceof Jwt) {
+            // Custom login: extract email from JWT's subject
             email = ((Jwt) principal).getSubject();
         } else if (principal instanceof DefaultOAuth2User) {
+            // Social login: extract email from OAuth2 attributes
             email = (String) ((DefaultOAuth2User) principal).getAttributes().get("email");
         } else if (principal instanceof UserDetails) {
+            // Fallback for manual login with UserDetails
             email = ((UserDetails) principal).getUsername();
         } else {
             email = principal.toString();
         }
-        
+
         System.out.println("Extracted email: " + email);
-        
+
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isPresent()) {
             return ResponseEntity.ok(userOpt.get());
         } else {
-            return ResponseEntity.badRequest().body("User not found");
+            // Optionally create a new user record (for social logins without full profile data)
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setName(email); // Set default name as email; prompt user to update later
+            newUser = userRepository.save(newUser);
+            return ResponseEntity.ok(newUser);
         }
     }
 
@@ -61,7 +69,7 @@ public class ProfileController {
             @RequestParam(value = "newPassword", required = false) String newPassword,
             @RequestParam(value = "avatar", required = false) MultipartFile avatar,
             @RequestParam(value = "banner", required = false) MultipartFile banner) {
-        
+
         // Retrieve authenticated user's email
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email = null;
@@ -74,15 +82,15 @@ public class ProfileController {
         } else {
             email = principal.toString();
         }
-        
+
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (!userOpt.isPresent()) {
             return ResponseEntity.badRequest().body("User not found");
         }
-        
+
         User user = userOpt.get();
         user.setName(name);
-        
+
         // If a new password is provided, verify the old password first
         if (newPassword != null && !newPassword.isEmpty()) {
             if (oldPassword == null || oldPassword.isEmpty() || !passwordEncoder.matches(oldPassword, user.getPassword())) {
@@ -90,7 +98,7 @@ public class ProfileController {
             }
             user.setPassword(passwordEncoder.encode(newPassword));
         }
-        
+
         // Handle avatar file upload
         if (avatar != null && !avatar.isEmpty()) {
             try {
@@ -105,7 +113,7 @@ public class ProfileController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error saving avatar");
             }
         }
-        
+
         // Handle banner file upload
         if (banner != null && !banner.isEmpty()) {
             try {
@@ -119,8 +127,7 @@ public class ProfileController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error saving banner");
             }
         }
-        
-        // Save the updated user record
+
         userRepository.save(user);
         return ResponseEntity.ok(user);
     }

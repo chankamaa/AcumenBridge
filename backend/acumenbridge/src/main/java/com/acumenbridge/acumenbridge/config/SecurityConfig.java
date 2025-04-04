@@ -6,13 +6,13 @@ import java.util.Arrays;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
 @Configuration
 public class SecurityConfig {
@@ -26,17 +26,17 @@ public class SecurityConfig {
             .cors().configurationSource(corsConfigurationSource()).and()
             .csrf(csrf -> csrf.disable())
             // Return 401 (Unauthorized) for API calls instead of redirecting
-            .exceptionHandling(exception -> 
+            .exceptionHandling(exception ->
                 exception.authenticationEntryPoint((request, response, authException) ->
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
                 )
             )
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints for registration, OTP, login, etc.
-                .requestMatchers("/auth/register", "/auth/send-otp", "/auth/verify-otp", "/auth/login", 
-                                  "/auth/forgot-password", "/auth/reset-password", "/oauth2/**", "/my-custom-login", 
+                .requestMatchers("/auth/register", "/auth/send-otp", "/auth/verify-otp", "/auth/login",
+                                  "/auth/forgot-password", "/auth/reset-password", "/oauth2/**", "/my-custom-login",
                                   "/", "/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
-                // Protect endpoints that require authentication
+                // Secure endpoints that require authentication
                 .requestMatchers("/auth/profile", "/auth/update-profile").authenticated()
                 .anyRequest().authenticated()
             )
@@ -51,6 +51,7 @@ public class SecurityConfig {
                 })
                 .permitAll()
             )
+            // Removed OAuth2 resource server configuration to allow session-based authentication for social logins
             .oauth2ResourceServer(oauth2 -> oauth2.jwt())
             .logout(logout -> logout.permitAll());
 
