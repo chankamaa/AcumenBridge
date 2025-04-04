@@ -26,7 +26,7 @@ public class ProfileController {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @GetMapping("/profile")
@@ -41,7 +41,6 @@ public class ProfileController {
             // Social login: extract email from OAuth2 attributes
             email = (String) ((DefaultOAuth2User) principal).getAttributes().get("email");
         } else if (principal instanceof UserDetails) {
-            // Fallback for manual login with UserDetails
             email = ((UserDetails) principal).getUsername();
         } else {
             email = principal.toString();
@@ -53,12 +52,16 @@ public class ProfileController {
         if (userOpt.isPresent()) {
             return ResponseEntity.ok(userOpt.get());
         } else {
-            // Optionally create a new user record (for social logins without full profile data)
-            User newUser = new User();
-            newUser.setEmail(email);
-            newUser.setName(email); // Set default name as email; prompt user to update later
-            newUser = userRepository.save(newUser);
-            return ResponseEntity.ok(newUser);
+            // For social logins without full profile data, create a new user record.
+            if (principal instanceof DefaultOAuth2User) {
+                User newUser = new User();
+                newUser.setEmail(email);
+                newUser.setName(email); // Default name; prompt user to update later
+                newUser = userRepository.save(newUser);
+                return ResponseEntity.ok(newUser);
+            } else {
+                return ResponseEntity.badRequest().body("User not found");
+            }
         }
     }
 
@@ -106,7 +109,7 @@ public class ProfileController {
                 Path avatarPath = Paths.get("uploads/avatars/" + avatarFileName);
                 Files.createDirectories(avatarPath.getParent());
                 Files.write(avatarPath, avatar.getBytes());
-                // Update user's avatar URL (adjust the URL based on your hosting configuration)
+                // Update user's avatar URL (adjust URL as needed)
                 user.setAvatar("http://localhost:8080/uploads/avatars/" + avatarFileName);
             } catch (IOException e) {
                 e.printStackTrace();

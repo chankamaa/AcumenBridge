@@ -34,7 +34,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints for registration, OTP, login, etc.
                 .requestMatchers("/auth/register", "/auth/send-otp", "/auth/verify-otp", "/auth/login",
-                                  "/auth/forgot-password", "/auth/reset-password", "/oauth2/**", "/my-custom-login",
+                                  "/auth/forgot-password", "/auth/reset-password", "/auth/reset-password/**", "/oauth2/**", "/my-custom-login",
                                   "/", "/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
                 // Secure endpoints that require authentication
                 .requestMatchers("/auth/profile", "/auth/update-profile").authenticated()

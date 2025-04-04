@@ -31,8 +31,12 @@ export async function forgotPassword(email) {
   return axios.post(`${API_URL}/auth/forgot-password`, { email }, { withCredentials: true });
 }
 
-export async function resetPassword(token, newPassword) {
-  return axios.post(`${API_URL}/auth/reset-password`, { token, newPassword }, { withCredentials: true });
+export async function resetPassword(email, token, newPassword) {
+  return axios.post(
+    `${API_URL}/auth/reset-password`,
+    { email, token, newPassword },
+    { withCredentials: true }
+  );
 }
 
 export async function getUserProfile() {
