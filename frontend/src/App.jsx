@@ -24,7 +24,7 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/create-post" element={<CreatePostPage/>} />
-          <Route path="/create-post/" element={<CreatePostPage/>} />
+        
         </Routes>
       </Router>
     </>
