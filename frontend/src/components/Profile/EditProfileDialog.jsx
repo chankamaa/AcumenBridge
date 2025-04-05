@@ -25,7 +25,11 @@ function EditProfileDialog({ open, handleClose, user, onSave }) {
   const [bannerPreview, setBannerPreview] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  // Initialize state when dialog opens
+  // Determine if the user logged in via custom login.
+  // If the user's password exists (non-empty), assume it's a custom login.
+  const isCustomLogin = user && user.password && user.password.trim().length > 0;
+
+  // When the dialog opens, initialize with the current user data
   useEffect(() => {
     if (user) {
       setName(user.name);
@@ -55,8 +59,8 @@ function EditProfileDialog({ open, handleClose, user, onSave }) {
   };
 
   const handleSave = () => {
-    // If either newPassword or confirmPassword is provided, require both and verify
-    if (newPassword !== '' || confirmPassword !== '') {
+    // For custom login users, validate password fields if a password change is attempted.
+    if (isCustomLogin && (newPassword !== '' || confirmPassword !== '')) {
       if (newPassword !== confirmPassword) {
         setPasswordError("New password and confirmation do not match.");
         return;
@@ -70,8 +74,8 @@ function EditProfileDialog({ open, handleClose, user, onSave }) {
     // Create FormData to send text fields and files
     const formData = new FormData();
     formData.append("name", name);
-    // Append password fields only if a new password is provided
-    if (newPassword !== '') {
+    // Append password fields only if the user is custom login and a new password is provided.
+    if (isCustomLogin && newPassword !== '') {
       formData.append("oldPassword", oldPassword);
       formData.append("newPassword", newPassword);
     }
@@ -107,36 +111,40 @@ function EditProfileDialog({ open, handleClose, user, onSave }) {
             value={user?.email || ''}
             InputProps={{ readOnly: true }}
           />
-          {/* Password Change Fields */}
-          <TextField
-            margin="dense"
-            label="Old Password"
-            type="password"
-            fullWidth
-            variant="outlined"
-            value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
-          />
-          <TextField
-            margin="dense"
-            label="New Password"
-            type="password"
-            fullWidth
-            variant="outlined"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
-          <TextField
-            margin="dense"
-            label="Confirm New Password"
-            type="password"
-            fullWidth
-            variant="outlined"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-          {passwordError && (
-            <Box sx={{ color: 'red', fontSize: '0.8rem' }}>{passwordError}</Box>
+          {/* Render password change fields only for custom login users */}
+          {isCustomLogin && (
+            <>
+              <TextField
+                margin="dense"
+                label="Old Password"
+                type="password"
+                fullWidth
+                variant="outlined"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+              />
+              <TextField
+                margin="dense"
+                label="New Password"
+                type="password"
+                fullWidth
+                variant="outlined"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              <TextField
+                margin="dense"
+                label="Confirm New Password"
+                type="password"
+                fullWidth
+                variant="outlined"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              {passwordError && (
+                <Box sx={{ color: 'red', fontSize: '0.8rem' }}>{passwordError}</Box>
+              )}
+            </>
           )}
           {/* File Upload for Avatar and Banner */}
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 2 }}>

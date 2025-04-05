@@ -20,7 +20,7 @@ import java.nio.file.Paths;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping(value = "/auth", produces = "application/json")
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class ProfileController {
 
@@ -29,11 +29,12 @@ public class ProfileController {
     
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    // Endpoint for current user's profile (requires authentication)
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email = null;
-        
+
         if (principal instanceof Jwt) {
             email = ((Jwt) principal).getSubject();
         } else if (principal instanceof DefaultOAuth2User) {
@@ -43,17 +44,38 @@ public class ProfileController {
         } else {
             email = principal.toString();
         }
-        
+
         System.out.println("Extracted email: " + email);
-        
+
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isPresent()) {
             return ResponseEntity.ok(userOpt.get());
         } else {
-            return ResponseEntity.badRequest().body("User not found");
+            // For social logins without full profile data, create a new user record.
+            if (principal instanceof DefaultOAuth2User) {
+                User newUser = new User();
+                newUser.setEmail(email);
+                newUser.setName(email); // Default name; prompt user to update later
+                newUser = userRepository.save(newUser);
+                return ResponseEntity.ok(newUser);
+            } else {
+                return ResponseEntity.badRequest().body("User not found");
+            }
         }
     }
 
+    // New endpoint to fetch any user's profile by ID (publicly viewable)
+    @GetMapping("/profile/{id}")
+    public ResponseEntity<?> getProfileById(@PathVariable("id") String id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isPresent()) {
+            return ResponseEntity.ok(userOpt.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+    }
+
+    // Endpoint to update the profile for the logged-in user
     @PutMapping("/update-profile")
     public ResponseEntity<?> updateProfile(
             @RequestParam("name") String name,
@@ -61,7 +83,7 @@ public class ProfileController {
             @RequestParam(value = "newPassword", required = false) String newPassword,
             @RequestParam(value = "avatar", required = false) MultipartFile avatar,
             @RequestParam(value = "banner", required = false) MultipartFile banner) {
-        
+
         // Retrieve authenticated user's email
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email = null;
@@ -74,15 +96,15 @@ public class ProfileController {
         } else {
             email = principal.toString();
         }
-        
+
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (!userOpt.isPresent()) {
             return ResponseEntity.badRequest().body("User not found");
         }
-        
+
         User user = userOpt.get();
         user.setName(name);
-        
+
         // If a new password is provided, verify the old password first
         if (newPassword != null && !newPassword.isEmpty()) {
             if (oldPassword == null || oldPassword.isEmpty() || !passwordEncoder.matches(oldPassword, user.getPassword())) {
@@ -90,7 +112,7 @@ public class ProfileController {
             }
             user.setPassword(passwordEncoder.encode(newPassword));
         }
-        
+
         // Handle avatar file upload
         if (avatar != null && !avatar.isEmpty()) {
             try {
@@ -105,7 +127,7 @@ public class ProfileController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error saving avatar");
             }
         }
-        
+
         // Handle banner file upload
         if (banner != null && !banner.isEmpty()) {
             try {
@@ -119,8 +141,7 @@ public class ProfileController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error saving banner");
             }
         }
-        
-        // Save the updated user record
+
         userRepository.save(user);
         return ResponseEntity.ok(user);
     }
