@@ -2,6 +2,8 @@ package com.acumenbridge.acumenbridge.models;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.ArrayList;
+import java.util.List;
 
 @Document(collection = "users")
 public class User {
@@ -12,6 +14,10 @@ public class User {
     private String password; // Hashed password
     private String avatar;   // URL or file path to user's avatar image
     private String banner;   // URL or file path to user's banner image
+    
+    // New fields for connections
+    private List<String> following = new ArrayList<>(); // IDs of users this user follows
+    private List<String> followers = new ArrayList<>(); // IDs of users that follow this user
 
     public User() {}
 
@@ -24,6 +30,7 @@ public class User {
     }
 
     // Getters and setters
+
     public String getId() {
         return id;
     }
@@ -64,5 +71,19 @@ public class User {
     }
     public void setBanner(String banner) {
         this.banner = banner;
+    }
+
+    public List<String> getFollowing() {
+        return following;
+    }
+    public void setFollowing(List<String> following) {
+        this.following = following;
+    }
+  
+    public List<String> getFollowers() {
+        return followers;
+    }
+    public void setFollowers(List<String> followers) {
+        this.followers = followers;
     }
 }

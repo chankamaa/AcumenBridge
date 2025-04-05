@@ -47,7 +47,7 @@ public class SecurityConfig {
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/my-custom-login")
                 .successHandler((request, response, authentication) -> {
-                    response.sendRedirect("http://localhost:5173/home");
+                    response.sendRedirect("http://localhost:5173/");
                 })
                 .permitAll()
             )
