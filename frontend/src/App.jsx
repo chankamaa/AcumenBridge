@@ -10,6 +10,7 @@ import ProfilePage from './pages/ProfilePage/ProfilePage';
 import Home from './pages/Home/Home';
 import CreatePostPage from './pages/CreatePost/CreatePostPage';
 
+
 function App() {
   return (
     <>
@@ -23,6 +24,7 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/create-post" element={<CreatePostPage/>} />
+          <Route path="/create-post/" element={<CreatePostPage/>} />
         </Routes>
       </Router>
     </>

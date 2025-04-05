@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { TextField, Button, Typography, Paper, Grid } from '@mui/material';
 
 const CreatePostPage = () => {
   const [description, setDescription] = useState('');
@@ -7,17 +8,16 @@ const CreatePostPage = () => {
   const openWidget = () => {
     const widget = window.cloudinary.createUploadWidget(
       {
-        cloudName: 'dffkhchiwe', // ✅ Your Cloudinary cloud name
-        uploadPreset: 'acumenbridge', // ✅ Your unsigned preset
+        cloudName: 'dffkhchiw',
+        uploadPreset: 'nnccvv',
         maxFiles: 3,
         resourceType: 'auto',
         multiple: true,
-        folder: 'posts/',
         clientAllowedFormats: ['jpg', 'png', 'mp4'],
       },
       (error, result) => {
         if (!error && result.event === 'success') {
-          setMediaUrls(prev => [...prev, result.info.secure_url]);
+          setMediaUrls((prev) => [...prev, result.info.secure_url]);
         }
       }
     );
@@ -28,7 +28,7 @@ const CreatePostPage = () => {
     e.preventDefault();
 
     if (mediaUrls.length === 0) {
-      alert("Please upload at least 1 media file.");
+      alert('Please upload at least 1 media file.');
       return;
     }
 
@@ -38,65 +38,76 @@ const CreatePostPage = () => {
     };
 
     console.log('Sending to backend:', newPost);
-    // TODO: Send newPost to your backend using Axios
+    // TODO: Send to backend
 
     setDescription('');
     setMediaUrls([]);
-    alert("Post created successfully!");
+    alert('Post created successfully!');
   };
 
   return (
-    <div className="max-w-2xl mx-auto mt-10 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-      <div className="p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Create a New Post</h2>
+    <div className="max-w-3xl mx-auto mt-12 px-4">
+      <Paper elevation={3} className="p-6 rounded-xl">
+        <Typography variant="h5" gutterBottom className="font-bold text-gray-800">
+          Create a New Post
+        </Typography>
 
         <form onSubmit={handleSubmit}>
-          <textarea
-            className="w-full border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-300 rounded-lg p-3 text-sm text-gray-700 resize-none mb-4"
-            rows="4"
-            placeholder="What's on your mind?"
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            label="What's on your mind?"
+            variant="outlined"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            className="mb-6"
           />
 
-          <button
-            type="button"
+          <Button
+            variant="outlined"
+            color="primary"
             onClick={openWidget}
-            className="inline-flex items-center gap-2 text-sm text-blue-600 font-medium hover:underline mb-4"
+            className="mb-4"
+            startIcon={<span>📎</span>}
           >
-            📎 Upload Images / Videos
-          </button>
+            Upload Image / Video
+          </Button>
 
           {mediaUrls.length > 0 && (
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              {mediaUrls.map((url, index) =>
-                url.includes('.mp4') ? (
-                  <video
-                    key={index}
-                    controls
-                    src={url}
-                    className="rounded-lg w-full h-28 object-cover"
-                  />
-                ) : (
-                  <img
-                    key={index}
-                    src={url}
-                    alt="media preview"
-                    className="rounded-lg w-full h-28 object-cover"
-                  />
-                )
-              )}
-            </div>
+            <Grid container spacing={2} className="mb-6">
+              {mediaUrls.map((url, index) => (
+                <Grid item xs={12} sm={4} key={index}>
+                  <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-lg border border-gray-200">
+                    {url.includes('.mp4') ? (
+                      <video
+                        controls
+                        src={url}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={url}
+                        alt={`media-${index}`}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
+                </Grid>
+              ))}
+            </Grid>
           )}
 
-          <button
+          <Button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 rounded-lg shadow transition duration-300"
+            variant="contained"
+            fullWidth
+            className="bg-blue-600 hover:bg-blue-700 text-white py-2 font-semibold rounded-lg shadow"
           >
             Post
-          </button>
+          </Button>
         </form>
-      </div>
+      </Paper>
     </div>
   );
 };
