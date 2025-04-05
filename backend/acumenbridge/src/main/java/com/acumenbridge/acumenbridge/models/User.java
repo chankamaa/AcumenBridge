@@ -1,9 +1,10 @@
+// src/main/java/com/acumenbridge/acumenbridge/models/User.java
 package com.acumenbridge.acumenbridge.models;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 @Document(collection = "users")
 public class User {
@@ -14,10 +15,10 @@ public class User {
     private String password; // Hashed password
     private String avatar;   // URL or file path to user's avatar image
     private String banner;   // URL or file path to user's banner image
-    
+
     // New fields for connections
-    private List<String> following = new ArrayList<>(); // IDs of users this user follows
-    private List<String> followers = new ArrayList<>(); // IDs of users that follow this user
+    private List<String> following = new ArrayList<>();
+    private List<String> followers = new ArrayList<>();
 
     public User() {}
 
@@ -29,61 +30,23 @@ public class User {
         this.banner = banner;
     }
 
-    // Getters and setters
+    // Getters and setters for existing fields...
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    public String getAvatar() { return avatar; }
+    public void setAvatar(String avatar) { this.avatar = avatar; }
+    public String getBanner() { return banner; }
+    public void setBanner(String banner) { this.banner = banner; }
 
-    public String getId() {
-        return id;
-    }
-    public void setId(String id) {
-        this.id = id;
-    }
-  
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-  
-    public String getEmail() {
-        return email;
-    }
-    public void setEmail(String email) {
-        this.email = email;
-    }
-  
-    public String getPassword() {
-        return password;
-    }
-    public void setPassword(String password) {
-        this.password = password;
-    }
-  
-    public String getAvatar() {
-        return avatar;
-    }
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
-    }
-  
-    public String getBanner() {
-        return banner;
-    }
-    public void setBanner(String banner) {
-        this.banner = banner;
-    }
-
-    public List<String> getFollowing() {
-        return following;
-    }
-    public void setFollowing(List<String> following) {
-        this.following = following;
-    }
-  
-    public List<String> getFollowers() {
-        return followers;
-    }
-    public void setFollowers(List<String> followers) {
-        this.followers = followers;
-    }
+    // Getters and setters for new fields
+    public List<String> getFollowing() { return following; }
+    public void setFollowing(List<String> following) { this.following = following; }
+    public List<String> getFollowers() { return followers; }
+    public void setFollowers(List<String> followers) { this.followers = followers; }
 }

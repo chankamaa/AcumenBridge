@@ -20,25 +20,24 @@ import java.nio.file.Paths;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping(value = "/auth", produces = "application/json")
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class ProfileController {
 
     @Autowired
     private UserRepository userRepository;
-
+    
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    // Endpoint for current user's profile (requires authentication)
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email = null;
 
         if (principal instanceof Jwt) {
-            // Custom login: extract email from JWT's subject
             email = ((Jwt) principal).getSubject();
         } else if (principal instanceof DefaultOAuth2User) {
-            // Social login: extract email from OAuth2 attributes
             email = (String) ((DefaultOAuth2User) principal).getAttributes().get("email");
         } else if (principal instanceof UserDetails) {
             email = ((UserDetails) principal).getUsername();
@@ -65,6 +64,18 @@ public class ProfileController {
         }
     }
 
+    // New endpoint to fetch any user's profile by ID (publicly viewable)
+    @GetMapping("/profile/{id}")
+    public ResponseEntity<?> getProfileById(@PathVariable("id") String id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isPresent()) {
+            return ResponseEntity.ok(userOpt.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+    }
+
+    // Endpoint to update the profile for the logged-in user
     @PutMapping("/update-profile")
     public ResponseEntity<?> updateProfile(
             @RequestParam("name") String name,
@@ -109,7 +120,7 @@ public class ProfileController {
                 Path avatarPath = Paths.get("uploads/avatars/" + avatarFileName);
                 Files.createDirectories(avatarPath.getParent());
                 Files.write(avatarPath, avatar.getBytes());
-                // Update user's avatar URL (adjust URL as needed)
+                // Update user's avatar URL (adjust the URL based on your hosting configuration)
                 user.setAvatar("http://localhost:8080/uploads/avatars/" + avatarFileName);
             } catch (IOException e) {
                 e.printStackTrace();

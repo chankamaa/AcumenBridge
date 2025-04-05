@@ -10,18 +10,20 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping(value = "/auth", produces = "application/json")
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class ConnectionController {
 
     @Autowired
     private UserRepository userRepository;
 
-    // Helper method to extract the email of the logged in user
+    // Helper method to extract the logged-in user's email
     private String getLoggedInUserEmail() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof Jwt) {
@@ -34,75 +36,118 @@ public class ConnectionController {
         return principal.toString();
     }
 
-    // Endpoint to follow a user
+    // GET /auth/following: Returns the list of user objects the current user is following
+    @GetMapping("/following")
+    public ResponseEntity<?> getFollowing() {
+        String email = getLoggedInUserEmail();
+        Optional<User> optUser = userRepository.findByEmail(email);
+        if (!optUser.isPresent()) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+        User currentUser = optUser.get();
+        List<String> followingIds = currentUser.getFollowing();
+        // If following list is null, return an empty list
+        if (followingIds == null) {
+            followingIds = new ArrayList<>();
+        }
+        List<User> followingUsers = userRepository.findAllById(followingIds);
+        return ResponseEntity.ok(followingUsers);
+    }
+
+    // GET /auth/suggestions: Returns a list of suggested users to follow (users not already followed)
+    @GetMapping("/suggestions")
+    public ResponseEntity<?> getSuggestions() {
+        String email = getLoggedInUserEmail();
+        Optional<User> optUser = userRepository.findByEmail(email);
+        if (!optUser.isPresent()) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+        User currentUser = optUser.get();
+        List<String> excludeIds = new ArrayList<>();
+        excludeIds.add(currentUser.getId());
+        if (currentUser.getFollowing() != null) {
+            excludeIds.addAll(currentUser.getFollowing());
+        }
+        List<User> allUsers = userRepository.findAll();
+        List<User> suggestions = allUsers.stream()
+                .filter(u -> !excludeIds.contains(u.getId()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(suggestions);
+    }
+
+    // POST /auth/follow/{targetUserId}: Follow a user
     @PostMapping("/follow/{targetUserId}")
     public ResponseEntity<?> followUser(@PathVariable String targetUserId) {
         String email = getLoggedInUserEmail();
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-        Optional<User> optionalTarget = userRepository.findById(targetUserId);
+        Optional<User> optCurrent = userRepository.findByEmail(email);
+        Optional<User> optTarget = userRepository.findById(targetUserId);
 
-        if (!optionalUser.isPresent() || !optionalTarget.isPresent()) {
+        if (!optCurrent.isPresent() || !optTarget.isPresent()) {
             return ResponseEntity.badRequest().body("User not found");
         }
 
-        User currentUser = optionalUser.get();
-        User targetUser = optionalTarget.get();
+        User currentUser = optCurrent.get();
+        User targetUser = optTarget.get();
 
-        // Add targetUser's ID to currentUser's following list (if not already present)
+        if (currentUser.getFollowing() == null) {
+            currentUser.setFollowing(new ArrayList<>());
+        }
+        if (targetUser.getFollowers() == null) {
+            targetUser.setFollowers(new ArrayList<>());
+        }
+
         if (!currentUser.getFollowing().contains(targetUserId)) {
             currentUser.getFollowing().add(targetUserId);
         }
-        // Add currentUser's ID to targetUser's followers list (if not already present)
         if (!targetUser.getFollowers().contains(currentUser.getId())) {
             targetUser.getFollowers().add(currentUser.getId());
         }
 
         userRepository.save(currentUser);
         userRepository.save(targetUser);
-
-        return ResponseEntity.ok("Now following user: " + targetUser.getName());
+        return ResponseEntity.ok("Followed user: " + targetUser.getName());
     }
 
-    // Endpoint to unfollow a user
+    // POST /auth/unfollow/{targetUserId}: Unfollow a user
     @PostMapping("/unfollow/{targetUserId}")
     public ResponseEntity<?> unfollowUser(@PathVariable String targetUserId) {
         String email = getLoggedInUserEmail();
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-        Optional<User> optionalTarget = userRepository.findById(targetUserId);
+        Optional<User> optCurrent = userRepository.findByEmail(email);
+        Optional<User> optTarget = userRepository.findById(targetUserId);
 
-        if (!optionalUser.isPresent() || !optionalTarget.isPresent()) {
+        if (!optCurrent.isPresent() || !optTarget.isPresent()) {
             return ResponseEntity.badRequest().body("User not found");
         }
 
-        User currentUser = optionalUser.get();
-        User targetUser = optionalTarget.get();
+        User currentUser = optCurrent.get();
+        User targetUser = optTarget.get();
 
-        currentUser.getFollowing().remove(targetUserId);
-        targetUser.getFollowers().remove(currentUser.getId());
+        if (currentUser.getFollowing() != null) {
+            currentUser.getFollowing().remove(targetUserId);
+        }
+        if (targetUser.getFollowers() != null) {
+            targetUser.getFollowers().remove(currentUser.getId());
+        }
 
         userRepository.save(currentUser);
         userRepository.save(targetUser);
-
         return ResponseEntity.ok("Unfollowed user: " + targetUser.getName());
     }
 
-    // Endpoint to list connections for the logged in user
+    // (Optional) GET /auth/connections: Return both followers and following lists
     @GetMapping("/connections")
     public ResponseEntity<?> getConnections() {
         String email = getLoggedInUserEmail();
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-
-        if (!optionalUser.isPresent()) {
+        Optional<User> optUser = userRepository.findByEmail(email);
+        if (!optUser.isPresent()) {
             return ResponseEntity.badRequest().body("User not found");
         }
-
-        User currentUser = optionalUser.get();
-        // For example, return both lists; you can customize the response as needed.
+        User currentUser = optUser.get();
         return ResponseEntity.ok(new ConnectionsResponse(currentUser.getFollowers(), currentUser.getFollowing()));
     }
 
-    // Helper response class for connections
-    static class ConnectionsResponse {
+    // Inner static class with getters and setters for Jackson serialization
+    public static class ConnectionsResponse {
         private List<String> followers;
         private List<String> following;
 

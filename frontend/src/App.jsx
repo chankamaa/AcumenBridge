@@ -9,6 +9,7 @@ import NavigationBar from './components/NavigationBar/NavigationBar';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
 import Home from './pages/Home/Home';
 import ConnectionsPage from './pages/ConnectionsPage/ConnectionsPage';
+import UserProfilePage from './pages/UserProfilePage/UserProfilePage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path='/connections' element={<ConnectionsPage />} />
+          <Route path="/profile/:id" element={<UserProfilePage />} />
         </Routes>
       </Router>
     </>

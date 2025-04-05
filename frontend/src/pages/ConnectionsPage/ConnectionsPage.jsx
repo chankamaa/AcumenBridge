@@ -1,43 +1,81 @@
 // src/pages/ConnectionsPage.jsx
-import React, { useState } from 'react';
-import { Box, Container } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Container, Typography, CircularProgress } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import FollowedUsersList from '../../components/FollowedUsersList/FollowedUsersList';
 import SuggestedUsersList from '../../components/SuggestedUsersList/SuggestedUsersList';
-
-// Sample data; in a real app, fetch these from your backend
-const sampleFollowedUsers = [
-  { id: '1', name: 'Alice Smith', avatar: 'https://via.placeholder.com/80' },
-  { id: '2', name: 'Bob Johnson', avatar: 'https://via.placeholder.com/80' },
-];
-
-const sampleSuggestedUsers = [
-  { id: '3', name: 'Charlie Brown', avatar: 'https://via.placeholder.com/80' },
-  { id: '4', name: 'Diana Prince', avatar: 'https://via.placeholder.com/80' },
-];
+import { getFollowing, getSuggestions, followUser, unfollowUser } from '../../services/connectionService';
 
 function ConnectionsPage() {
-  const [followedUsers, setFollowedUsers] = useState(sampleFollowedUsers);
-  const [suggestedUsers, setSuggestedUsers] = useState(sampleSuggestedUsers);
+  const [followedUsers, setFollowedUsers] = useState([]);
+  const [suggestedUsers, setSuggestedUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  // Example handlers for follow/unfollow toggles
-  const handleUnfollow = (user) => {
-    // Remove user from followed list and add back to suggestions
-    setFollowedUsers(prev => prev.filter(u => u.id !== user.id));
-    setSuggestedUsers(prev => [...prev, user]);
+  useEffect(() => {
+    async function fetchConnections() {
+      try {
+        // Use getFollowing() to fetch the list of followed users
+        const followingResponse = await getFollowing();
+        const suggestionsResponse = await getSuggestions();
+        setFollowedUsers(followingResponse.data || []);
+        setSuggestedUsers(suggestionsResponse.data || []);
+      } catch (error) {
+        console.error("Error fetching connections:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchConnections();
+  }, []);
+
+  const handleFollow = async (user) => {
+    try {
+      await followUser(user.id);
+      setFollowedUsers(prev => Array.isArray(prev) ? [...prev, user] : [user]);
+      setSuggestedUsers(prev => Array.isArray(prev) ? prev.filter(u => u.id !== user.id) : []);
+    } catch (error) {
+      console.error("Error following user:", error);
+    }
   };
 
-  const handleFollow = (user) => {
-    // Remove user from suggestions and add to followed list
-    setSuggestedUsers(prev => prev.filter(u => u.id !== user.id));
-    setFollowedUsers(prev => [...prev, user]);
+  const handleUnfollow = async (user) => {
+    try {
+      await unfollowUser(user.id);
+      setFollowedUsers(prev => Array.isArray(prev) ? prev.filter(u => u.id !== user.id) : []);
+      setSuggestedUsers(prev => Array.isArray(prev) ? [...prev, user] : [user]);
+    } catch (error) {
+      console.error("Error unfollowing user:", error);
+    }
   };
+
+  const handleViewProfile = (userId) => {
+    navigate(`/profile/${userId}`);
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ textAlign: 'center', mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Container sx={{ mt: 4 }}>
-      <Box>
-        <FollowedUsersList followedUsers={followedUsers} onUnfollow={handleUnfollow} />
-        <SuggestedUsersList suggestedUsers={suggestedUsers} onFollow={handleFollow} />
-      </Box>
+      <Typography variant="h4" gutterBottom>Connections</Typography>
+      <Typography variant="h5" gutterBottom>Following</Typography>
+      <FollowedUsersList
+        followedUsers={followedUsers}
+        onUnfollow={handleUnfollow}
+        onViewProfile={handleViewProfile}
+      />
+      <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>Suggestions to Follow</Typography>
+      <SuggestedUsersList
+        suggestedUsers={suggestedUsers}
+        onFollow={handleFollow}
+        onViewProfile={handleViewProfile}
+      />
     </Container>
   );
 }

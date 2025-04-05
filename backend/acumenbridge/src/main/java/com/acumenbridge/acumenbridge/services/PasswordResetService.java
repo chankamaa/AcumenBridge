@@ -1,7 +1,6 @@
 package com.acumenbridge.acumenbridge.services;
 
 import org.springframework.stereotype.Service;
-
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,8 +31,6 @@ public class PasswordResetService {
 
     /**
      * In-memory map of email -> ResetTokenInfo.
-     * Key: user email
-     * Value: token & expiry
      */
     private final Map<String, ResetTokenInfo> resetTokens = new ConcurrentHashMap<>();
 
@@ -49,15 +46,9 @@ public class PasswordResetService {
      * @return the newly generated reset token
      */
     public String createResetToken(String email) {
-        // Generate a random token (UUID)
         String token = UUID.randomUUID().toString();
-
-        // Calculate expiry time
         long expiryTime = System.currentTimeMillis() + TOKEN_EXPIRATION_MS;
-
-        // Store in the map
         resetTokens.put(email, new ResetTokenInfo(token, expiryTime));
-
         return token;
     }
 
@@ -69,6 +60,10 @@ public class PasswordResetService {
      * @return true if valid; false otherwise
      */
     public boolean validateResetToken(String email, String token) {
+        // Check for null email to avoid NullPointerException
+        if (email == null) {
+            return false;
+        }
         if (!resetTokens.containsKey(email)) {
             return false;
         }
@@ -77,20 +72,13 @@ public class PasswordResetService {
         if (tokenInfo == null) {
             return false;
         }
-
-        // Check if token matches
         if (!tokenInfo.getToken().equals(token)) {
             return false;
         }
-
-        // Check if token is expired
         if (System.currentTimeMillis() > tokenInfo.getExpiry()) {
-            // Remove expired token
             resetTokens.remove(email);
             return false;
         }
-
-        // Token is valid
         return true;
     }
 

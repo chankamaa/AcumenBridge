@@ -1,7 +1,8 @@
-// src/components/UserCard.jsx
+// src/components/UserCard/UserCard.jsx
 import React from 'react';
 import { Card, CardContent, CardActions, Avatar, Typography, Button, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 function UserCard({ user, isFollowed, onFollowToggle }) {
   const navigate = useNavigate();
@@ -15,7 +16,13 @@ function UserCard({ user, isFollowed, onFollowToggle }) {
     <Card sx={{ maxWidth: 345, m: 1 }}>
       <CardContent onClick={handleProfileClick} sx={{ cursor: 'pointer' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Avatar src={user.avatar} alt={user.name} />
+          {user.avatar ? (
+            <Avatar src={user.avatar} alt={user.name} />
+          ) : (
+            <Avatar>
+              <AccountCircleIcon />
+            </Avatar>
+          )}
           <Typography variant="h6">{user.name}</Typography>
         </Box>
       </CardContent>
