@@ -1,6 +1,7 @@
 // src/pages/Home.jsx
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import CreatePostPage from '../CreatePost/CreatePostPage';
 
 function Home() {
   const location = useLocation();
@@ -13,7 +14,9 @@ function Home() {
     }
   }, [location]);
 
-  return <div>Welcome Home!</div>;
+  return (
+    <CreatePostPage />
+  );
 }
 
 export default Home;
