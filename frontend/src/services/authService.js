@@ -74,3 +74,12 @@ export async function logoutUser() {
     localStorage.removeItem('token');
   }
 }
+
+
+export async function deleteProfile() {
+  const token = localStorage.getItem('token');
+  return axios.delete(`${API_URL}/auth/delete-profile`, {
+    withCredentials: true,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+}
