@@ -145,4 +145,28 @@ public class ProfileController {
         userRepository.save(user);
         return ResponseEntity.ok(user);
     }
+
+    @DeleteMapping("/delete-profile")
+public ResponseEntity<?> deleteProfile() {
+    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    String email = null;
+
+    if (principal instanceof Jwt) {
+        email = ((Jwt) principal).getSubject();
+    } else if (principal instanceof DefaultOAuth2User) {
+        email = (String) ((DefaultOAuth2User) principal).getAttributes().get("email");
+    } else if (principal instanceof UserDetails) {
+        email = ((UserDetails) principal).getUsername();
+    } else {
+        email = principal.toString();
+    }
+
+    Optional<User> userOpt = userRepository.findByEmail(email);
+    if (!userOpt.isPresent()) {
+        return ResponseEntity.badRequest().body("User not found");
+    }
+
+    userRepository.delete(userOpt.get());
+    return ResponseEntity.ok("User profile deleted successfully");
+}
 }
