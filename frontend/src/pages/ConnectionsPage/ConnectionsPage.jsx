@@ -64,13 +64,13 @@ function ConnectionsPage() {
   return (
     <Container sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>Connections</Typography>
-      <Typography variant="h5" gutterBottom>Following</Typography>
+
       <FollowedUsersList
         followedUsers={followedUsers}
         onUnfollow={handleUnfollow}
         onViewProfile={handleViewProfile}
       />
-      <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>Suggestions to Follow</Typography>
+
       <SuggestedUsersList
         suggestedUsers={suggestedUsers}
         onFollow={handleFollow}
