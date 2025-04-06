@@ -46,3 +46,10 @@ export async function getUserProfileById(userId) {
     headers: authHeaders()
   });
 }
+
+export async function searchUsers(query) {
+    return axios.get(`${API_URL}/auth/search?query=${encodeURIComponent(query)}`, {
+      withCredentials: true,
+      headers: authHeaders()
+    });
+  }
