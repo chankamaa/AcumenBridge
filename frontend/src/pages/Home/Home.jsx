@@ -16,7 +16,11 @@ function Home() {
 
   const handleCreatePost = () => {
     navigate('/create-post');
+
   };
+  const handleHomePage = () => {
+    navigate('/Homepage');
+  }
 
   return (
     <div className="home-container">
@@ -25,6 +29,9 @@ function Home() {
         <p className="home-subtitle">Ready to share something new?</p>
         <button onClick={handleCreatePost} className="home-button">
           Create Post
+        </button>
+        <button onClick={handleHomePage} className="home-button">
+          Home Page
         </button>
       </div>
     </div>

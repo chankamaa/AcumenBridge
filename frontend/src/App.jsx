@@ -9,6 +9,7 @@ import NavigationBar from './components/NavigationBar/NavigationBar';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
 import Home from './pages/Home/Home';
 import CreatePostPage from './pages/CreatePost/CreatePostPage';
+import HomePage from './pages/CreatePost/HomePage';
 
 
 function App() {
@@ -24,6 +25,8 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/create-post" element={<CreatePostPage/>} />
+          <Route path="/Homepage" element={<HomePage/>} />
+          
         
         </Routes>
       </Router>
