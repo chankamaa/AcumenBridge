@@ -1,51 +1,105 @@
+// src/components/Post/PostCard.jsx
 import React, { useState } from 'react';
-import { likePost, commentOnPost } from '../../services/postService'; // Adjust the import path as necessary
-import CommentBox from './CommentBox';
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardMedia,
+  CardActions,
+  Avatar,
+  IconButton,
+  Typography,
+  Badge,
+  Tooltip,
+  Menu,
+  MenuItem,
+  Box
+} from '@mui/material';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 
-const PostCard = ({ post }) => {
-  const [likes, setLikes] = useState(post.likes || 0);
-  const [comments, setComments] = useState(post.comments || []);
+export default function PostCard({ post, onEdit, onDelete }) {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const menuOpen = Boolean(anchorEl);
 
-  const handleLike = async () => {
-    await likePost(post.id);
-    setLikes(likes + 1); // Simple increment
-  };
+  const handleMenuOpen = e => setAnchorEl(e.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
+  const handleEdit   = () => { handleMenuClose(); onEdit(post); };
+  const handleDelete = () => { handleMenuClose(); onDelete(post); };
 
-  const handleComment = async (text) => {
-    await commentOnPost(post.id, text);
-    const updated = [...comments, { user: 'You', text }];
-    setComments(updated);
-  };
+  const likedBy     = (post.likes || []).join(', ') || 'No likes yet';
+  const commentedBy = (post.comments || []).map(c => c.authorName).join(', ') || 'No comments yet';
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow mb-6">
-      <div className="text-sm text-gray-700 mb-2 font-medium">🧑 milan sanjaya</div>
+    <Card sx={{ mb:2, borderRadius:2, boxShadow:1 }}>
+      <CardHeader
+        avatar={<Avatar src={post.userAvatar} alt={post.userName} />}
+        action={
+          <>
+            <IconButton onClick={handleMenuOpen}>
+              <MoreVertIcon />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={menuOpen}
+              onClose={handleMenuClose}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top',    horizontal: 'right' }}
+            >
+              <MenuItem onClick={handleEdit}>Edit</MenuItem>
+              <MenuItem onClick={handleDelete}>Delete</MenuItem>
+            </Menu>
+          </>
+        }
+        title={<Typography variant="subtitle1" fontWeight="bold">{post.userName}</Typography>}
+        subheader={<Typography variant="caption" color="text.secondary">
+          {new Date(post.createdAt).toLocaleString()}
+        </Typography>}
+      />
 
-      {post.description && <p className="text-sm mb-3">{post.description}</p>}
+      <CardContent sx={{ pt:0 }}>
+        <Typography variant="body1" sx={{ whiteSpace:'pre-wrap', mb:2 }}>
+          {post.description}
+        </Typography>
+      </CardContent>
 
-      <div className="grid grid-cols-1 gap-2 mb-3">
-        {post.mediaUrls.map((url, i) =>
-          url.endsWith('.mp4') ? (
-            <video key={i} src={url} controls className="rounded w-full" />
-          ) : (
-            <img key={i} src={url} alt="media" className="rounded w-full" />
-          )
-        )}
-      </div>
+      {/* MEDIA */}
+      {post.mediaUrls?.map((url,i) => {
+        const isVideo = /\.(mp4|webm)$/i.test(url);
+        return (
+          <CardMedia
+            key={i}
+            component={isVideo ? 'video' : 'img'}
+            src={url}
+            controls={isVideo}
+            alt={isVideo ? undefined : `media-${i}`}
+            sx={{
+              width: '100%',
+              height: 'auto',
+              mb: 1,
+              borderRadius: 1,
+            }}
+          />
+        );
+      })}
 
-      <div className="flex justify-between text-xs text-gray-500 mb-1">
-        <span>👍 {likes}</span>
-        <span>💬 {comments.length}</span>
-      </div>
-
-      <div className="flex justify-between border-t pt-2 text-sm">
-        <button onClick={handleLike} className="text-blue-600 hover:underline">Like</button>
-        <button className="text-blue-600 hover:underline">Comment</button>
-      </div>
-
-      <CommentBox onComment={handleComment} comments={comments} />
-    </div>
+      <CardActions disableSpacing>
+        <Tooltip title={likedBy}>
+          <IconButton>
+            <Badge badgeContent={post.likes?.length || 0} color="primary">
+              <FavoriteBorderIcon />
+            </Badge>
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={commentedBy}>
+          <IconButton>
+            <Badge badgeContent={post.comments?.length || 0} color="primary">
+              <ChatBubbleOutlineIcon />
+            </Badge>
+          </IconButton>
+        </Tooltip>
+      </CardActions>
+    </Card>
   );
-};
-
-export default PostCard;
+}

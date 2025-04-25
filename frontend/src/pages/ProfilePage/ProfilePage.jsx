@@ -1,46 +1,80 @@
 // src/pages/ProfilePage.jsx
 import React, { useState, useEffect } from 'react';
 import { Box, Container, CircularProgress } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import ProfileBanner from '../../components/Profile/ProfileBanner';
 import ProfileActions from '../../components/Profile/ProfileActions';
 import EditProfileDialog from '../../components/Profile/EditProfileDialog';
-import { getUserProfile, updateProfile, deleteProfile } from '../../services/authService';
-import { useNavigate } from 'react-router-dom';
+import PostFeed from '../../components/PostFeed/PostFeed';
+import {
+  getUserProfile,
+  updateProfile,
+  deleteProfile
+} from '../../services/authService';
+import { deletePost } from '../../services/postService';
 
-function ProfilePage() {
+export default function ProfilePage() {
   const [user, setUser] = useState(null);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const fetchProfile = async () => {
-    try {
-      const response = await getUserProfile();
-      setUser(response.data);
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Load current user profile
   useEffect(() => {
-    fetchProfile();
+    (async () => {
+      try {
+        const res = await getUserProfile();
+        setUser(res.data);
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
+  // Edit dialog open/close
   const handleOpenEdit = () => setOpenEditDialog(true);
   const handleCloseEdit = () => setOpenEditDialog(false);
 
+  // Save profile changes
   const handleSaveProfile = async (formData) => {
     try {
-      // Call updateProfile API with FormData and update the user state with the new data.
-      const updatedUser = await updateProfile(formData);
-      setUser(updatedUser);
-    } catch (error) {
-      console.error('Error updating profile:', error);
+      const res = await updateProfile(formData);
+      setUser(res.data || res); // adapt to your API shape
+    } catch (err) {
+      console.error('Error updating profile:', err);
     } finally {
       setOpenEditDialog(false);
+    }
+  };
+
+  // Delete entire profile
+  const handleDeleteProfile = async () => {
+    try {
+      await deleteProfile();
+      // clear state/auth and redirect
+      navigate('/login');
+    } catch (err) {
+      console.error('Error deleting profile:', err);
+    }
+  };
+
+  // When a specific post is edited (you can open an edit dialog here)
+  const handleEditPost = (post) => {
+    console.log('Edit post:', post);
+    // TODO: open your post edit dialog
+  };
+
+  // Delete a specific post
+  const handleDeletePost = async (post) => {
+    if (!window.confirm('Are you sure you want to delete this post?')) return;
+    try {
+      await deletePost(post.id);
+      // no need to refetch user, PostFeed will refresh itself because userId hasn't changed
+    } catch (err) {
+      console.error('Error deleting post:', err);
     }
   };
 
@@ -60,32 +94,35 @@ function ProfilePage() {
     );
   }
 
-
-  const handleDeleteProfile = async () => {
-    try {
-      await deleteProfile();
-      // Optionally, clear any authentication state and navigate to login or home.
-      navigate('/login');
-    } catch (error) {
-      console.error("Error deleting profile:", error);
-    }
-  };
-
   return (
     <Box sx={{ backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+      {/* Top Banner */}
       <ProfileBanner user={user} />
-      <Container sx={{ mt: 4, mx: 8 }}>
-        <ProfileActions onEdit={handleOpenEdit} />
+
+      {/* Main Container with tighter spacing */}
+      <Container sx={{ mt: 2, mx: 4 }}>
+        {/* Profile action buttons */}
+        <ProfileActions onEdit={handleOpenEdit} onDelete={handleDeleteProfile} />
+
+        {/* Edit Profile Dialog */}
+        <EditProfileDialog
+          open={openEditDialog}
+          handleClose={handleCloseEdit}
+          user={user}
+          onSave={handleSaveProfile}
+          onDelete={handleDeleteProfile}
+        />
+
+        {/* User’s own posts feed, with edit & delete handlers */}
+        <Box sx={{ mt: 1 }}>
+          <PostFeed
+            userId={user.id}
+            limit={10}
+            onEdit={handleEditPost}
+            onDelete={handleDeletePost}
+          />
+        </Box>
       </Container>
-      <EditProfileDialog
-        open={openEditDialog}
-        handleClose={handleCloseEdit}
-        user={user}
-        onSave={handleSaveProfile}
-        onDelete={handleDeleteProfile}
-      />
     </Box>
   );
 }
-
-export default ProfilePage;

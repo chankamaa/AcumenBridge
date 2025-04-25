@@ -1,9 +1,12 @@
+// src/pages/CreatePost/CreatePostPage.jsx
 import React, { useState } from 'react';
-import { TextField, Button, Typography, Paper, Grid } from '@mui/material';
+import { TextField, Button, Typography, Paper, Grid, Box, CircularProgress } from '@mui/material';
+import { createPost } from '../../services/postService';  // ← import your service
 
-const CreatePostPage = () => {
+export default function CreatePostPage() {
   const [description, setDescription] = useState('');
   const [mediaUrls, setMediaUrls] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const openWidget = () => {
     const widget = window.cloudinary.createUploadWidget(
@@ -17,41 +20,39 @@ const CreatePostPage = () => {
       },
       (error, result) => {
         if (!error && result.event === 'success') {
-          setMediaUrls((prev) => [...prev, result.info.secure_url]);
+          setMediaUrls(prev => [...prev, result.info.secure_url]);
         }
       }
     );
     widget.open();
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (mediaUrls.length === 0) {
       alert('Please upload at least 1 media file.');
       return;
     }
-
-    const newPost = {
-      description,
-      mediaUrls,
-    };
-
-    console.log('Sending to backend:', newPost);
-    // TODO: Send to backend
-
-    setDescription('');
-    setMediaUrls([]);
-    alert('Post created successfully!');
+    setLoading(true);
+    try {
+      await createPost({ description, mediaUrls });
+      setDescription('');
+      setMediaUrls([]);
+      alert('Post created successfully!');
+    } catch (err) {
+      console.error('Create post failed:', err);
+      alert('Failed to create post.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-12 px-4">
+    <Box className="max-w-3xl mx-auto mt-12 px-4">
       <Paper elevation={3} className="p-6 rounded-xl">
-        <Typography variant="h5" gutterBottom className="font-bold text-gray-800">
+        <Typography variant="h5" gutterBottom>
           Create a New Post
         </Typography>
-
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
@@ -60,56 +61,68 @@ const CreatePostPage = () => {
             label="What's on your mind?"
             variant="outlined"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="mb-6"
+            onChange={e => setDescription(e.target.value)}
+            sx={{ mb: 4 }}
           />
-
           <Button
             variant="outlined"
-            color="primary"
             onClick={openWidget}
-            className="mb-4"
-            startIcon={<span>📎</span>}
+            sx={{ mb: 4 }}
           >
             Upload Image / Video
           </Button>
-
           {mediaUrls.length > 0 && (
-            <Grid container spacing={2} className="mb-6">
-              {mediaUrls.map((url, index) => (
-                <Grid item xs={12} sm={4} key={index}>
-                  <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-lg border border-gray-200">
-                    {url.includes('.mp4') ? (
+            <Grid container spacing={2} sx={{ mb: 4 }}>
+              {mediaUrls.map((url, i) => (
+                <Grid item xs={12} sm={4} key={i}>
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      width: '100%',
+                      paddingTop: '100%', // 1:1 aspect
+                      overflow: 'hidden',
+                      borderRadius: 2,
+                      border: '1px solid #ddd'
+                    }}
+                  >
+                    {/\.(mp4|webm)$/i.test(url) ? (
                       <video
-                        controls
                         src={url}
-                        className="w-full h-full object-cover"
+                        controls
+                        style={{
+                          position: 'absolute',
+                          top: 0, left: 0,
+                          width: '100%', height: '100%',
+                          objectFit: 'cover'
+                        }}
                       />
                     ) : (
                       <img
                         src={url}
-                        alt={`media-${index}`}
-                        className="w-full h-full object-cover"
+                        alt=""
+                        style={{
+                          position: 'absolute',
+                          top: 0, left: 0,
+                          width: '100%', height: '100%',
+                          objectFit: 'cover'
+                        }}
                       />
                     )}
-                  </div>
+                  </Box>
                 </Grid>
               ))}
             </Grid>
           )}
-
           <Button
             type="submit"
             variant="contained"
             fullWidth
-            className="bg-blue-600 hover:bg-blue-700 text-white py-2 font-semibold rounded-lg shadow"
+            disabled={loading}
           >
-            Post
+            {loading ? <CircularProgress size={24} /> : 'Post'}
           </Button>
         </form>
       </Paper>
-    </div>
+    </Box>
   );
-};
-
-export default CreatePostPage;
+}

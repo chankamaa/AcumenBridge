@@ -39,6 +39,9 @@ public class SecurityConfig {
                 // Secure endpoints that require authentication
                 .requestMatchers("/auth/profile", "/auth/update-profile", "/auth/following", "/auth/suggestions",
                                   "/auth/follow/**", "/auth/unfollow/**","/auth/profile/**").authenticated()
+
+                .requestMatchers("/posts/**").permitAll()
+
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
