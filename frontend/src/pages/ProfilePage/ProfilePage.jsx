@@ -4,12 +4,14 @@ import { Box, Container, CircularProgress } from '@mui/material';
 import ProfileBanner from '../../components/Profile/ProfileBanner';
 import ProfileActions from '../../components/Profile/ProfileActions';
 import EditProfileDialog from '../../components/Profile/EditProfileDialog';
-import { getUserProfile, updateProfile } from '../../services/authService';
+import { getUserProfile, updateProfile, deleteProfile } from '../../services/authService';
+import { useNavigate } from 'react-router-dom';
 
 function ProfilePage() {
   const [user, setUser] = useState(null);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const fetchProfile = async () => {
     try {
@@ -58,6 +60,17 @@ function ProfilePage() {
     );
   }
 
+
+  const handleDeleteProfile = async () => {
+    try {
+      await deleteProfile();
+      // Optionally, clear any authentication state and navigate to login or home.
+      navigate('/login');
+    } catch (error) {
+      console.error("Error deleting profile:", error);
+    }
+  };
+
   return (
     <Box sx={{ backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       <ProfileBanner user={user} />
@@ -69,6 +82,7 @@ function ProfilePage() {
         handleClose={handleCloseEdit}
         user={user}
         onSave={handleSaveProfile}
+        onDelete={handleDeleteProfile}
       />
     </Box>
   );

@@ -1,11 +1,13 @@
 // src/pages/ResetPassword.jsx
 import React, { useState } from 'react';
 import { Box, TextField, Button, Typography, LinearProgress } from '@mui/material';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { resetPassword } from '../../services/authService';
 
 function ResetPassword() {
   const { token } = useParams();
+  const [searchParams] = useSearchParams();
+  const email = searchParams.get('email'); // Extract email from query parameter
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [strength, setStrength] = useState(0);
@@ -32,7 +34,8 @@ function ResetPassword() {
       return;
     }
     try {
-      await resetPassword(token, password);
+      // Pass email, token, and new password
+      await resetPassword(email, token, password);
       setMessage('Password reset successful! You can now log in.');
     } catch (err) {
       setMessage(err.response?.data?.message || 'Error resetting password');

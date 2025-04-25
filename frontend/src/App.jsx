@@ -10,7 +10,9 @@ import ProfilePage from './pages/ProfilePage/ProfilePage';
 import Home from './pages/Home/Home';
 import CreatePostPage from './pages/CreatePost/CreatePostPage';
 import HomePage from './pages/CreatePost/HomePage';
-
+import ConnectionsPage from './pages/ConnectionsPage/ConnectionsPage';
+import UserProfilePage from './pages/UserProfilePage/UserProfilePage';
+import SearchPage from './pages/SearchPage/SearchPage';
 
 function App() {
   return (
@@ -26,8 +28,9 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/create-post" element={<CreatePostPage/>} />
           <Route path="/Homepage" element={<HomePage/>} />
-          
-        
+          <Route path='/connections' element={<ConnectionsPage />} />
+          <Route path="/profile/:id" element={<UserProfilePage />} />
+          <Route path="/search" element={<SearchPage />} />
         </Routes>
       </Router>
     </>
