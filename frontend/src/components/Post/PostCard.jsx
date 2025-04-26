@@ -15,6 +15,7 @@ import {
   MenuItem,
   Box
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
@@ -24,39 +25,36 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 import { AuthContext } from '../../context/AuthContext';
 import { likePost, unlikePost } from '../../services/interactionService';
+import CommentSection from './CommentSection';
 
-export default function PostCard({
-  post,
-  onEdit,
-  onDelete,
-  onComment
-}) {
+export default function PostCard({ post, onEdit, onDelete }) {
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-  const [anchorEl, setAnchorEl]       = useState(null);
+
+  const [anchorEl, setAnchorEl]         = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [likesCount, setLikesCount]     = useState(post.likes?.length || 0);
   const [isLiked, setIsLiked]           = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   // three-dot menu
   const menuOpen = Boolean(anchorEl);
   const openMenu = e => setAnchorEl(e.currentTarget);
   const closeMenu= () => setAnchorEl(null);
 
-  // edit / delete actions
-  const handleEdit   = () => { closeMenu(); onEdit(post); };
-  const handleDelete = () => { closeMenu(); onDelete(post); };
+  const handleEdit   = () => { closeMenu(); onEdit && onEdit(post); };
+  const handleDelete = () => { closeMenu(); onDelete && onDelete(post); };
 
-  // determine if current user has liked
+  // track liked state
   useEffect(() => {
-    if (user && post.likes) {
+    if (user && Array.isArray(post.likes)) {
       setIsLiked(post.likes.includes(user.id));
     }
   }, [user, post.likes]);
 
-  // like/unlike handlers
+  // like/unlike
   const toggleLike = async () => {
     if (!user) return;
-
     try {
       if (isLiked) {
         await unlikePost(post.id);
@@ -71,18 +69,28 @@ export default function PostCard({
     }
   };
 
-  // carousel
-  const media = post.mediaUrls || [];
-  const total = media.length;
-  const url   = media[currentIndex] || '';
+  // carousel controls
+  const media   = post.mediaUrls || [];
+  const total   = media.length;
+  const url     = media[currentIndex] || '';
   const isVideo = /\.(mp4|webm)$/i.test(url);
-  const goPrev = () => setCurrentIndex(i => Math.max(0, i - 1));
-  const goNext = () => setCurrentIndex(i => Math.min(total - 1, i + 1));
+  const goPrev  = () => setCurrentIndex(i => Math.max(0, i - 1));
+  const goNext  = () => setCurrentIndex(i => Math.min(total - 1, i + 1));
+
+  // navigate to user profile
+  const goToProfile = () => navigate(`/profile/${post.userId}`);
 
   return (
     <Card sx={{ mb:2, borderRadius:2, boxShadow:1, position: 'relative' }}>
       <CardHeader
-        avatar={<Avatar src={post.userAvatar} alt={post.userName} />}
+        avatar={
+          <Avatar
+            src={post.userAvatar}
+            alt={post.userName}
+            sx={{ cursor: 'pointer' }}
+            onClick={goToProfile}
+          />
+        }
         action={
           <>
             <IconButton onClick={openMenu}>
@@ -93,17 +101,28 @@ export default function PostCard({
               open={menuOpen}
               onClose={closeMenu}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top',    horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
               <MenuItem onClick={handleEdit}>Edit</MenuItem>
               <MenuItem onClick={handleDelete}>Delete</MenuItem>
             </Menu>
           </>
         }
-        title={<Typography variant="subtitle1" fontWeight="bold">{post.userName}</Typography>}
-        subheader={<Typography variant="caption" color="text.secondary">
-          {new Date(post.createdAt).toLocaleString()}
-        </Typography>}
+        title={
+          <Typography
+            variant="subtitle1"
+            fontWeight="bold"
+            sx={{ cursor: 'pointer' }}
+            onClick={goToProfile}
+          >
+            {post.userName}
+          </Typography>
+        }
+        subheader={
+          <Typography variant="caption" color="text.secondary">
+            {new Date(post.createdAt).toLocaleString()}
+          </Typography>
+        }
       />
 
       <CardContent sx={{ pt:0 }}>
@@ -119,11 +138,7 @@ export default function PostCard({
             src={url}
             controls={isVideo}
             alt={isVideo ? undefined : `media-${currentIndex}`}
-            sx={{
-              width: '100%',
-              height: 'auto',
-              borderRadius: 1,
-            }}
+            sx={{ width: '100%', height: 'auto', borderRadius: 1 }}
           />
 
           {total > 1 && (
@@ -132,9 +147,12 @@ export default function PostCard({
                 <IconButton
                   onClick={goPrev}
                   sx={{
-                    position: 'absolute', left: 8, top: '50%',
+                    position: 'absolute',
+                    left: 8,
+                    top: '50%',
                     transform: 'translateY(-50%)',
-                    bgcolor: 'rgba(0,0,0,0.4)', color: 'white',
+                    bgcolor: 'rgba(0,0,0,0.4)',
+                    color: 'white',
                     '&:hover': { bgcolor: 'rgba(0,0,0,0.6)' }
                   }}
                 >
@@ -145,9 +163,12 @@ export default function PostCard({
                 <IconButton
                   onClick={goNext}
                   sx={{
-                    position: 'absolute', right: 8, top: '50%',
+                    position: 'absolute',
+                    right: 8,
+                    top: '50%',
                     transform: 'translateY(-50%)',
-                    bgcolor: 'rgba(0,0,0,0.4)', color: 'white',
+                    bgcolor: 'rgba(0,0,0,0.4)',
+                    color: 'white',
                     '&:hover': { bgcolor: 'rgba(0,0,0,0.6)' }
                   }}
                 >
@@ -160,24 +181,27 @@ export default function PostCard({
       )}
 
       <CardActions disableSpacing>
-        {/* Like button */}
         <Tooltip title={isLiked ? 'Unlike' : 'Like'}>
           <IconButton onClick={toggleLike}>
             <Badge badgeContent={likesCount} color="primary">
-              {isLiked ? <FavoriteIcon color="error"/> : <FavoriteBorderIcon />}
+              {isLiked
+                ? <FavoriteIcon color="error" />
+                : <FavoriteBorderIcon />
+              }
             </Badge>
           </IconButton>
         </Tooltip>
 
-        {/* Comment button */}
         <Tooltip title="Comments">
-          <IconButton onClick={() => onComment?.(post)}>
+          <IconButton onClick={() => setShowComments(s => !s)}>
             <Badge badgeContent={post.comments?.length || 0} color="primary">
               <ChatBubbleOutlineIcon />
             </Badge>
           </IconButton>
         </Tooltip>
       </CardActions>
+
+      {showComments && <CommentSection postId={post.id} />}
     </Card>
   );
 }
