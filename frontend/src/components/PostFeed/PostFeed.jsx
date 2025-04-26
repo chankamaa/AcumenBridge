@@ -1,62 +1,73 @@
 // src/components/PostFeed.jsx
-import React, { useEffect, useState, useContext } from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Box, CircularProgress, Typography, Button } from '@mui/material';
+import { getFeed, getPostsByUser } from '../../services/postService';
 import PostCard from '../Post/PostCard';
-import { getFeed } from '../../services/postService';
-import { AuthContext } from '../../context/AuthContext';
 
-export default function PostFeed({ limit, onEdit, onDelete }) {
-  const { user } = useContext(AuthContext);
-  const [posts, setPosts] = useState([]);
+export default function PostFeed({ userId, limit, onEdit, onDelete }) {
+  const [posts,   setPosts]   = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
       try {
-        const res = await getFeed();
+        const res = userId
+          ? await getPostsByUser(userId)
+          : await getFeed();
         setPosts(res.data);
       } catch (err) {
-        console.error('Error loading feed:', err);
+        console.error('Error loading posts:', err);
       } finally {
         setLoading(false);
       }
     }
     load();
-  }, []);
+  }, [userId]);
 
-  // filter out your own posts
-  const filtered = posts.filter(p => p.userId !== user?.id);
-  const displayPosts = typeof limit === 'number' 
-    ? filtered.slice(0, limit) 
-    : filtered;
-
-  if (loading) {
-    return (
-      <Box sx={{ textAlign: 'center', py: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (!displayPosts.length) {
-    return (
-      <Typography align="center" color="text.secondary" sx={{ mt: 2 }}>
-        No posts yet.
-      </Typography>
-    );
-  }
+  const displayPosts = typeof limit === 'number'
+    ? posts.slice(0, limit)
+    : posts;
 
   return (
-    <Box sx={{ mt: 2 }}>
-      {displayPosts.map(post => (
-        <PostCard
-          key={post.id}
-          post={post}
-          onEdit={() => onEdit?.(post)}
-          onDelete={() => onDelete?.(post)}
-        />
-      ))}
+    <Box sx={{ maxWidth: 600, mx: 'auto', mt: 0.5, px: 1 }}>
+      {/* Optional Refresh button */}
+      {!userId && (
+        <Box sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          bgcolor: 'background.paper',
+          py: 0.5,
+          mb: 0.5
+        }}>
+          {/* <Button variant="contained" fullWidth onClick={() => window.location.reload()}>
+            Refresh Feed
+          </Button> */}
+        </Box>
+      )}
+
+      {/* Scrollable feed */}
+      <Box sx={{ maxHeight: '75vh', overflowY: 'auto', mt: 0 }}>
+        {loading ? (
+          <Box sx={{ textAlign: 'center', mt: 0.5 }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : displayPosts.length === 0 ? (
+          <Typography align="center" color="text.secondary" sx={{ mt: 1 }}>
+            No posts yet.
+          </Typography>
+        ) : (
+          displayPosts.map(post => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onEdit={()   => onEdit && onEdit(post)}
+              onDelete={() => onDelete && onDelete(post)}
+            />
+          ))
+        )}
+      </Box>
     </Box>
   );
 }
