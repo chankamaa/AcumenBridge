@@ -5,39 +5,75 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
 @Configuration
 public class SecurityConfig {
 
-    // This secret should match the one used in your JwtService for generating tokens
     private final String secretKey = "mySuperSecretKeyThatShouldBeLongEnoughForHS256";
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors().configurationSource(corsConfigurationSource()).and()
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
-            // Return 401 (Unauthorized) for API calls instead of redirecting
-            .exceptionHandling(exception -> 
-                exception.authenticationEntryPoint((request, response, authException) ->
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((req, res, ex2) ->
+                    res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
                 )
             )
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints for registration, OTP, login, etc.
-                .requestMatchers("/auth/register", "/auth/send-otp", "/auth/verify-otp", "/auth/login", 
-                                  "/auth/forgot-password", "/auth/reset-password", "/oauth2/**", "/my-custom-login", 
-                                  "/", "/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
-                // Protect endpoints that require authentication
-                .requestMatchers("/auth/profile", "/auth/update-profile").authenticated()
+
+                // public auth endpoints
+                .requestMatchers(
+                    "/auth/register",
+                    "/auth/send-otp",
+                    "/auth/verify-otp",
+                    "/auth/login",
+                    "/auth/forgot-password",
+                    "/auth/reset-password",
+                    "/auth/reset-password/**",
+                    "/oauth2/**",
+                    "/my-custom-login",
+                    "/", "/css/**", "/js/**", "/images/**", "/uploads/**",
+                    "/connections", "/connections/**"
+                ).permitAll()
+
+                // profile & follow/suggestions require auth
+                .requestMatchers(
+                    "/auth/profile",
+                    "/auth/update-profile",
+                    "/auth/following",
+                    "/auth/suggestions",
+                    "/auth/follow/**",
+                    "/auth/unfollow/**",
+                    "/auth/profile/**"
+                ).authenticated()
+
+                // POSTS: anyone can GET, but mutating operations need auth
+                .requestMatchers(HttpMethod.GET,    "/posts/**").permitAll()
+                .requestMatchers(HttpMethod.POST,   "/posts").authenticated()
+                .requestMatchers(HttpMethod.PUT,    "/posts/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/posts/**").authenticated()
+
+                // LIKES: require auth
+                .requestMatchers(HttpMethod.POST, "/posts/*/like").authenticated()
+                .requestMatchers(HttpMethod.POST, "/posts/*/unlike").authenticated()
+
+                // COMMENTS: GET is public, others require auth
+                .requestMatchers(HttpMethod.GET,    "/comments/post/**").permitAll()
+                .requestMatchers(HttpMethod.POST,   "/comments/post/**").authenticated()
+                .requestMatchers(HttpMethod.PUT,    "/comments/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/comments/**").authenticated()
+
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -46,9 +82,7 @@ public class SecurityConfig {
             )
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/my-custom-login")
-                .successHandler((request, response, authentication) -> {
-                    response.sendRedirect("http://localhost:5173/home");
-                })
+                .successHandler((req, res, auth) -> res.sendRedirect("http://localhost:5173/"))
                 .permitAll()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt())
@@ -59,21 +93,21 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("*"));
-        config.setAllowCredentials(true);
+        CorsConfiguration cfg = new CorsConfiguration();
+        cfg.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        cfg.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
+        cfg.setAllowedHeaders(Arrays.asList("*"));
+        cfg.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
+        UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
+        src.registerCorsConfiguration("/**", cfg);
+        return src;
     }
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        return NimbusJwtDecoder.withSecretKey(
-            Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8))
-        ).build();
+        return NimbusJwtDecoder
+            .withSecretKey(Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8)))
+            .build();
     }
 }

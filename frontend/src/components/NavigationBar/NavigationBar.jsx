@@ -18,18 +18,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-
-// Import your logo PNG
 import LogoImage from '../../assets/logo-acumennbridge.png';
-// Import necessary functions from authService
 import { getUserProfile, logoutUser } from '../../services/authService';
-// Import AuthContext
 import { AuthContext } from '../../context/AuthContext';
 
 function NavigationBar() {
   const navigate = useNavigate();
   const { user, setUser } = useContext(AuthContext);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch user profile when component mounts or when the user state changes.
   useEffect(() => {
@@ -42,7 +39,6 @@ function NavigationBar() {
         setUser(null);
       }
     }
-    // If user is already not set, try fetching user profile.
     if (!user) {
       fetchUser();
     }
@@ -77,22 +73,26 @@ function NavigationBar() {
     navigate('/');
   };
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim() !== '') {
+      navigate(`/search?query=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
   return (
     <AppBar
       position="static"
-      sx={{
-        backgroundColor: '#fff',
-        color: '#000',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-      }}
+      sx={{ backgroundColor: '#fff', color: '#000', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}
     >
       <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
         {/* Left: Logo */}
         <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={handleLogoClick}>
           <Box component="img" src={LogoImage} alt="Acumenbridge Logo" sx={{ width: 80, marginRight: 1 }} />
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-            Acumenbridge
-          </Typography>
+          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Acumenbridge</Typography>
         </Box>
 
         {/* Center: Search Bar */}
@@ -100,8 +100,11 @@ function NavigationBar() {
           <TextField
             fullWidth
             variant="outlined"
-            placeholder="Search..."
+            placeholder="Search users..."
             size="small"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            onKeyDown={handleSearchKeyDown}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -160,7 +163,6 @@ function NavigationBar() {
           onClose={handleUserMenuClose}
           PaperProps={{ sx: { width: 240 } }}
         >
-          {/* Top Section: Avatar, Name, Subtitle */}
           <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
             {user.avatar ? (
               <Avatar src={user.avatar} alt={user.name} sx={{ width: 48, height: 48, mr: 2 }} />
@@ -169,9 +171,7 @@ function NavigationBar() {
             )}
             <Box>
               <Typography sx={{ fontWeight: 'bold' }}>{user.name}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {user.subtitle}
-              </Typography>
+              <Typography variant="body2" color="text.secondary">{user.subtitle}</Typography>
             </Box>
           </Box>
           <Divider />
