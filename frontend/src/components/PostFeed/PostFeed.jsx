@@ -48,7 +48,7 @@ export default function PostFeed({ userId, limit, onEdit, onDelete }) {
       )}
 
       {/* Scrollable feed */}
-      <Box sx={{ maxHeight: '75vh', overflowY: 'auto', mt: 0 }}>
+      <Box sx={{ maxHeight: '100vh', overflowY: 'auto', mt: 0 }}>
         {loading ? (
           <Box sx={{ textAlign: 'center', mt: 0.5 }}>
             <CircularProgress size={24} />

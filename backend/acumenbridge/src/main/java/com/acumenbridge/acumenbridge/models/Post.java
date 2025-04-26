@@ -1,10 +1,14 @@
+// src/main/java/com/acumenbridge/acumenbridge/models/Post.java
 package com.acumenbridge.acumenbridge.models;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Document(collection = "posts")
 public class Post {
@@ -12,11 +16,13 @@ public class Post {
     @Id
     private String id;
 
-    private String userId;       // ← who created it
-    private String userName;     // ← display name of the creator
+    private String userId;       // who created it
+    private String userName;     // display name of the creator
 
     private String description;
     private List<String> mediaUrls = new ArrayList<>();
+
+    private Set<String> likes = new HashSet<>();   // user IDs who have liked
 
     private Instant createdAt;
     private Instant updatedAt;
@@ -34,10 +40,10 @@ public class Post {
      * @param mediaUrls   list of Cloudinary URLs
      */
     public Post(String userId, String userName, String description, List<String> mediaUrls) {
-        this.userId = userId;
-        this.userName = userName;
+        this.userId      = userId;
+        this.userName    = userName;
         this.description = description;
-        this.mediaUrls = mediaUrls != null ? mediaUrls : new ArrayList<>();
+        this.mediaUrls   = mediaUrls != null ? mediaUrls : new ArrayList<>();
         Instant now = Instant.now();
         this.createdAt = now;
         this.updatedAt = now;
@@ -82,6 +88,13 @@ public class Post {
         this.mediaUrls = mediaUrls;
     }
 
+    public Set<String> getLikes() {
+        return likes;
+    }
+    public void setLikes(Set<String> likes) {
+        this.likes = likes;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -97,6 +110,18 @@ public class Post {
     }
 
     // --------------------------------------
+    // Convenience methods
+    // --------------------------------------
+
+    public void addLike(String userId) {
+        this.likes.add(userId);
+    }
+
+    public void removeLike(String userId) {
+        this.likes.remove(userId);
+    }
+
+    // --------------------------------------
     // toString, equals, hashCode (optional)
     // --------------------------------------
 
@@ -108,6 +133,7 @@ public class Post {
                ", userName='" + userName + '\'' +
                ", description='" + description + '\'' +
                ", mediaUrls=" + mediaUrls +
+               ", likes=" + likes +
                ", createdAt=" + createdAt +
                ", updatedAt=" + updatedAt +
                '}';
