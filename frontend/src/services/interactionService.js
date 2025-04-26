@@ -44,7 +44,7 @@ export function unlikePost(postId) {
 // Fetch comments for a given post
 export function getCommentsByPost(postId) {
   return axios.get(
-    `${API_URL}/posts/${postId}/comments`,
+    `${API_URL}/comments/post/${postId}`,
     {
       withCredentials: true,
       headers: authHeaders()
@@ -55,8 +55,8 @@ export function getCommentsByPost(postId) {
 // Add a new comment to a post
 export function addComment(postId, text) {
   return axios.post(
-    `${API_URL}/comments`,
-    { postId, text },
+    `${API_URL}/comments/post/${postId}`,
+    { text },
     {
       withCredentials: true,
       headers: {
