@@ -18,9 +18,11 @@ public class LearningPlanController {
     private LearningPlanRepository repository;
 
     @GetMapping
-    public List<LearningPlan> getAll() {
-        return repository.findAll();
+    public ResponseEntity<List<LearningPlan>> getAll() {
+        List<LearningPlan> plans = repository.findAll();
+        return ResponseEntity.ok(plans);
     }
+
 
     @GetMapping("/{id}")
     public LearningPlan getById(@PathVariable String id) {
