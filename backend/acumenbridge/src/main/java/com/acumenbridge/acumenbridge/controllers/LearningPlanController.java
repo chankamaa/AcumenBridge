@@ -18,7 +18,7 @@ public class LearningPlanController {
     private LearningPlanRepository repository;
 
     @GetMapping
-    public ResponseEntity<List<LearningPlan>> getAll() {
+    public ResponseEntity<List<LearningPlan>> getAllLearningPlans() {
         List<LearningPlan> plans = repository.findAll();
         return ResponseEntity.ok(plans);
     }
