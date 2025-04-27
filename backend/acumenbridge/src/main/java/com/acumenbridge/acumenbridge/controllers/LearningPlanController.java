@@ -12,7 +12,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/learning-plans")
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
-
 public class LearningPlanController {
 
     @Autowired
@@ -43,8 +42,13 @@ public class LearningPlanController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id) {
-        repository.deleteById(id);
+    public ResponseEntity<?> delete(@PathVariable String id) {
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+            return ResponseEntity.ok("Learning plan deleted successfully with ID: " + id);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Learning plan with ID " + id + " not found.");
+        }
     }
-    
 }
