@@ -47,7 +47,7 @@ public class LearningPlanController {
     public ResponseEntity<?> delete(@PathVariable String id) {
         if (repository.existsById(id)) {
             repository.deleteById(id);
-            return ResponseEntity.ok("Learning plan deleted successfully with ID: " + id);
+            return ResponseEntity.ok("Successfully deleted Learning Plan with ID: " + id);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Learning plan with ID " + id + " not found.");
