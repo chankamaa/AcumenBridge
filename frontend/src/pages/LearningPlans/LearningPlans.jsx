@@ -121,27 +121,6 @@ const LearningPlans = () => {
     }
   };
 
-  const handleShare = async (plan) => {
-    try {
-      const shareText = `Check out this learning plan: ${plan.topic}\n\n${plan.description}\n\nResources: ${plan.resources.join(', ')}`;
-      
-      if (navigator.share) {
-        // Use Web Share API if available
-        await navigator.share({
-          title: plan.topic,
-          text: shareText
-        });
-      } else {
-        // Fallback to clipboard
-        await navigator.clipboard.writeText(shareText);
-        alert('Learning plan copied to clipboard! Share it with others.');
-      }
-    } catch (err) {
-      console.error('Share error:', err);
-      alert('Could not share the learning plan. Please try again.');
-    }
-  };
-
   return (
     <div className="learning-plans-container">
       <h1>Learning Plans</h1>
@@ -234,76 +213,77 @@ const LearningPlans = () => {
       {isLoading && plans.length === 0 ? (
         <div className="loading-spinner">Loading...</div>
       ) : (
-        <div className="learning-plans-list">
-          <h2>Available Learning Plans</h2>
+        <div className="plans-container">
+          <h2 className="section-title">Available Learning Plans</h2>
           {plans.length === 0 ? (
-            <p>No learning plans available. Create one!</p>
+            <div className="empty-state">
+              <i className="fas fa-lightbulb"></i>
+              <p>No learning plans available. Create one!</p>
+            </div>
           ) : (
-            <div className="plans-grid">
+            <div className="modern-plans-grid">
               {plans.map(plan => (
-                <div key={plan.id} className="plan-card">
-                {/* Add user info section at the top */}
-                <div className="plan-user-info">
-                  <div className="user-avatar">
-                    {/* You can use initials or an avatar image */}
-                    {plan.userId?.charAt(0).toUpperCase()}
+                <div key={plan.id} className="modern-plan-card">
+                  <div className="card-header">
+                    <div className="user-info">
+                      <div className="avatar">
+                        {plan.userId?.charAt(0).toUpperCase() || 'U'}
+                      </div>
+                      <div className="user-meta">
+                        <span className="username">
+                          User ID: {plan.userId?.substring(0, 8) || 'Anonymous'}
+                        </span>
+                        <span className="post-date">
+                          {new Date(plan.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="user-details">
-                    <span className="username">User ID: {plan.userId}</span>
-                    {/* If you have usernames, use: plan.username || `User ${plan.userId.substring(0, 6)}` */}
-                  </div>
-                </div>
-                
-                {/* Rest of your existing card content */}
-                <div className="plan-header">
-                  <h3>{plan.topic}</h3>
-                  <div className="plan-meta">
-                    <div className="plan-dates">
+
+                  <div className="card-content">
+                    <h3>{plan.topic}</h3>
+                    <div className="date-range">
+                      <i className="far fa-calendar-alt"></i>
                       {new Date(plan.startDate).toLocaleDateString()} - {new Date(plan.endDate).toLocaleDateString()}
                     </div>
-                    <div className="plan-created">
-                      Created: {new Date(plan.createdAt).toLocaleDateString()}
-                    </div>
+                    <p className="description">{plan.description}</p>
+                    
+                    {plan.resources?.length > 0 && (
+                      <div className="resources-section">
+                        <h4><i className="fas fa-link"></i> Resources</h4>
+                        <div className="resource-links">
+                          {plan.resources.map((resource, index) => (
+                            <a 
+                              key={index} 
+                              href={resource} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="resource-link"
+                            >
+                              <i className="fas fa-external-link-alt"></i> Resource {index + 1}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-                
-                <p className="plan-description">{plan.description}</p>
-                
-                <div className="plan-resources">
-                  <h4>Resources:</h4>
-                  <ul>
-                    {plan.resources.map((resource, index) => (
-                      <li key={index}>
-                        <a href={resource} target="_blank" rel="noopener noreferrer">
-                          Resource {index + 1}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                
-                <div className="plan-actions">
+
+                  <div className="card-actions">
                     <button 
                       onClick={() => handleEdit(plan)} 
-                      className="btn-edit"
+                      className="action-btn edit-btn"
                       disabled={isLoading}
                     >
-                      Edit
+                      <i className="fas fa-edit"></i> Edit
                     </button>
                     <button 
                       onClick={() => handleDelete(plan.id)} 
-                      className="btn-delete"
+                      className="action-btn delete-btn"
                       disabled={isLoading}
                     >
-                      Delete
+                      <i className="fas fa-trash-alt"></i> Delete
                     </button>
-                    <button 
-                      onClick={() => handleShare(plan)} 
-                      className="btn-share"
-                      disabled={isLoading}
-                    >
-                      Share
-                    </button>
+                    
                   </div>
                 </div>
               ))}
