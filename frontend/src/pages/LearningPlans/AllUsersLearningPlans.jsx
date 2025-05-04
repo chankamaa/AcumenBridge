@@ -23,6 +23,43 @@ const AllUsersLearningPlans = () => {
     }
   };
 
+  const handleRepost = async (planId) => {
+    if (window.confirm('Do you want to share this learning plan with your network?')) {
+      try {
+        // Call your API endpoint for reposting/sharing
+        await LearningPlanService.repostLearningPlan(planId);
+        alert('Learning plan shared successfully!');
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to share learning plan');
+      }
+    }
+  };
+
+  const handleShare = async (plan) => {
+    try {
+      const shareText = `Check out this learning plan: ${plan.topic}\n\n${plan.description}\n\nResources: ${plan.resources?.join(', ') || 'No resources provided'}`;
+      
+      if (navigator.share) {
+        // Web Share API
+        await navigator.share({
+          title: plan.topic,
+          text: shareText,
+          url: window.location.href
+        });
+      } else if (navigator.clipboard) {
+        // Clipboard fallback
+        await navigator.clipboard.writeText(shareText);
+        alert('Learning plan copied to clipboard!');
+      } else {
+        // Final fallback
+        prompt('Copy this learning plan:', shareText);
+      }
+    } catch (err) {
+      console.error('Share error:', err);
+    }
+  };
+
+
   return (
     <div className="learning-plans-container">
       <h1>Community Learning Plans</h1>
@@ -75,6 +112,23 @@ const AllUsersLearningPlans = () => {
                       ))}
                     </ul>
                   </div>
+                  <div className="plan-actions">
+                    <button 
+                    onClick={() => handleRepost(plan.id)}
+                    className="btn-repost"
+                    title="Share this plan with your network"
+                    >
+                    <i className="fas fa-retweet"></i> Repost
+                    </button>
+                    
+                    <button 
+                    onClick={() => handleShare(plan)}
+                    className="btn-share"
+                    title="Share this plan externally"
+                    >
+                    <i className="fas fa-share-alt"></i> Share
+                    </button>
+                </div>
                 </div>
               ))}
             </div>
