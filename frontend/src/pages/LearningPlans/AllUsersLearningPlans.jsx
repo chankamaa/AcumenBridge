@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LearningPlanService } from '../../services/learningPlanService';
-import './LearningPlans.css'; // Reuse your existing styles
+import './LearningPlans.css';
 
 const AllUsersLearningPlans = () => {
   const [allPlans, setAllPlans] = useState([]);
@@ -24,111 +24,92 @@ const AllUsersLearningPlans = () => {
   };
 
   const handleRepost = async (planId) => {
-    if (window.confirm('Do you want to share this learning plan with your network?')) {
-      try {
-        // Call your API endpoint for reposting/sharing
-        await LearningPlanService.repostLearningPlan(planId);
-        alert('Learning plan shared successfully!');
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to share learning plan');
-      }
-    }
-  };
-
-  const handleShare = async (plan) => {
     try {
-      const shareText = `Check out this learning plan: ${plan.topic}\n\n${plan.description}\n\nResources: ${plan.resources?.join(', ') || 'No resources provided'}`;
-      
-      if (navigator.share) {
-        // Web Share API
-        await navigator.share({
-          title: plan.topic,
-          text: shareText,
-          url: window.location.href
-        });
-      } else if (navigator.clipboard) {
-        // Clipboard fallback
-        await navigator.clipboard.writeText(shareText);
-        alert('Learning plan copied to clipboard!');
-      } else {
-        // Final fallback
-        prompt('Copy this learning plan:', shareText);
-      }
+      await LearningPlanService.repostLearningPlan(planId);
+      // Visual feedback instead of alert
+      setAllPlans(plans => plans.map(plan => 
+        plan.id === planId 
+          ? { ...plan, reposted: true, repostCount: (plan.repostCount || 0) + 1 }
+          : plan
+      ));
     } catch (err) {
-      console.error('Share error:', err);
+      setError(err.response?.data?.message || 'Failed to repost learning plan');
     }
   };
-
 
   return (
-    <div className="learning-plans-container">
-      <h1>Community Learning Plans</h1>
+    <div className="community-plans-container">
+      <header className="community-header">
+        <h1>Community Learning Plans</h1>
+        <p className="subtitle">Discover and share knowledge from the community</p>
+      </header>
       
       {error && <div className="alert alert-danger">{error}</div>}
 
       {isLoading ? (
         <div className="loading-spinner">Loading...</div>
       ) : (
-        <div className="learning-plans-list">
-          <h2>Explore What Others Are Learning</h2>
+        <div className="plans-container">
           {allPlans.length === 0 ? (
-            <p>No public learning plans available yet.</p>
+            <div className="empty-state">
+              <i className="fas fa-lightbulb"></i>
+              <p>No public learning plans available yet.</p>
+            </div>
           ) : (
-            <div className="plans-grid">
+            <div className="modern-plans-grid">
               {allPlans.map(plan => (
-                <div key={plan.id} className="plan-card">
-                  <div className="plan-user-info">
-                    <div className="user-avatar">
-                      {plan.userId?.charAt(0).toUpperCase() || 'U'}
+                <div key={plan.id} className="modern-plan-card">
+                  <div className="card-header">
+                    <div className="user-info">
+                      <div className="avatar">
+                        {plan.userId?.charAt(0).toUpperCase() || 'U'}
+                      </div>
+                      <div className="user-meta">
+                        <span className="username">
+                          {plan.username || `User ${plan.userId?.substring(0, 6) || 'Anonymous'}`}
+                        </span>
+                        <span className="post-date">
+                          {new Date(plan.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
-                    <div className="user-meta">
-                      <span className="username">
-                        {plan.username || `User ${plan.userId?.substring(0, 6) || 'Anonymous'}`}
-                      </span>
-                      <span className="created-date">
-                        {new Date(plan.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
+                    <button 
+                      onClick={() => handleRepost(plan.id)}
+                      className={`repost-btn ${plan.reposted ? 'reposted' : ''}`}
+                      aria-label="Repost this plan"
+                    >
+                      <i className="fas fa-retweet"></i>
+                      {plan.repostCount > 0 && <span>{plan.repostCount}</span>}
+                    </button>
                   </div>
 
-                  <div className="plan-header">
+                  <div className="card-content">
                     <h3>{plan.topic}</h3>
-                    <div className="plan-dates">
+                    <div className="date-range">
+                      <i className="far fa-calendar-alt"></i>
                       {new Date(plan.startDate).toLocaleDateString()} - {new Date(plan.endDate).toLocaleDateString()}
                     </div>
-                  </div>
-
-                  <p className="plan-description">{plan.description}</p>
-
-                  <div className="plan-resources">
-                    <h4>Resources:</h4>
-                    <ul>
-                      {plan.resources?.map((resource, index) => (
-                        <li key={index}>
-                          <a href={resource} target="_blank" rel="noopener noreferrer">
-                            Resource {index + 1}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="plan-actions">
-                    <button 
-                    onClick={() => handleRepost(plan.id)}
-                    className="btn-repost"
-                    title="Share this plan with your network"
-                    >
-                    <i className="fas fa-retweet"></i> Repost
-                    </button>
+                    <p className="description">{plan.description}</p>
                     
-                    <button 
-                    onClick={() => handleShare(plan)}
-                    className="btn-share"
-                    title="Share this plan externally"
-                    >
-                    <i className="fas fa-share-alt"></i> Share
-                    </button>
-                </div>
+                    {plan.resources?.length > 0 && (
+                      <div className="resources-section">
+                        <h4><i className="fas fa-link"></i> Resources</h4>
+                        <div className="resource-links">
+                          {plan.resources.map((resource, index) => (
+                            <a 
+                              key={index} 
+                              href={resource} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="resource-link"
+                            >
+                              <i className="fas fa-external-link-alt"></i> Resource {index + 1}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
