@@ -121,6 +121,27 @@ const LearningPlans = () => {
     }
   };
 
+  const handleShare = async (plan) => {
+    try {
+      const shareText = `Check out this learning plan: ${plan.topic}\n\n${plan.description}\n\nResources: ${plan.resources.join(', ')}`;
+      
+      if (navigator.share) {
+        // Use Web Share API if available
+        await navigator.share({
+          title: plan.topic,
+          text: shareText
+        });
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(shareText);
+        alert('Learning plan copied to clipboard! Share it with others.');
+      }
+    } catch (err) {
+      console.error('Share error:', err);
+      alert('Could not share the learning plan. Please try again.');
+    }
+  };
+
   return (
     <div className="learning-plans-container">
       <h1>Learning Plans</h1>
@@ -283,7 +304,13 @@ const LearningPlans = () => {
                     >
                       <i className="fas fa-trash-alt"></i> Delete
                     </button>
-                    
+                    <button 
+                      onClick={() => handleShare(plan)} 
+                      className="action-btn share-btn"
+                      disabled={isLoading}
+                    >
+                      <i className="fas fa-share-alt"></i> Share
+                    </button>
                   </div>
                 </div>
               ))}
