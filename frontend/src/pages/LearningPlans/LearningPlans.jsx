@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { LearningPlanService } from '../../services/learningPlanService';
+import { AuthContext } from '../../context/AuthContext';
 import './LearningPlans.css';
 
 const LearningPlans = () => {
+  const { user } = useContext(AuthContext);
   const [plans, setPlans] = useState([]);
   const [formData, setFormData] = useState({
     topic: '',
@@ -47,13 +49,25 @@ const LearningPlans = () => {
     setError('');
     setSuccess('');
     setIsLoading(true);
-
+  
     try {
+      // Ensure resources is properly formatted as an array
+      const resourcesArray = Array.isArray(formData.resources) 
+        ? formData.resources 
+        : formData.resources.split(',').map(res => res.trim());
+  
+      const planData = {
+        ...formData,
+        resources: resourcesArray,
+        userId: user.id,
+        createdAt: new Date().toISOString()
+      };
+  
       if (editingId) {
-        await LearningPlanService.updateLearningPlan(editingId, formData);
+        await LearningPlanService.updateLearningPlan(editingId, planData);
         setSuccess('Learning plan updated successfully!');
       } else {
-        await LearningPlanService.createLearningPlan(formData);
+        await LearningPlanService.createLearningPlan(planData);
         setSuccess('Learning plan created successfully!');
       }
       fetchLearningPlans();
@@ -81,7 +95,9 @@ const LearningPlans = () => {
     setFormData({
       topic: plan.topic,
       description: plan.description,
-      resources: plan.resources.join(', '),
+      resources: Array.isArray(plan.resources) 
+        ? plan.resources.join(', ') 
+        : plan.resources,
       startDate: plan.startDate,
       endDate: plan.endDate
     });
@@ -226,10 +242,28 @@ const LearningPlans = () => {
             <div className="plans-grid">
               {plans.map(plan => (
                 <div key={plan.id} className="plan-card">
+                {/* Add user info section at the top */}
+                <div className="plan-user-info">
+                  <div className="user-avatar">
+                    {/* You can use initials or an avatar image */}
+                    {plan.userId?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="user-details">
+                    <span className="username">User ID: {plan.userId}</span>
+                    {/* If you have usernames, use: plan.username || `User ${plan.userId.substring(0, 6)}` */}
+                  </div>
+                </div>
+                
+                {/* Rest of your existing card content */}
                 <div className="plan-header">
                   <h3>{plan.topic}</h3>
-                  <div className="plan-dates">
-                    {new Date(plan.startDate).toLocaleDateString()} - {new Date(plan.endDate).toLocaleDateString()}
+                  <div className="plan-meta">
+                    <div className="plan-dates">
+                      {new Date(plan.startDate).toLocaleDateString()} - {new Date(plan.endDate).toLocaleDateString()}
+                    </div>
+                    <div className="plan-created">
+                      Created: {new Date(plan.createdAt).toLocaleDateString()}
+                    </div>
                   </div>
                 </div>
                 
