@@ -57,6 +57,11 @@ function NavigationBar() {
     navigate('/profile');
   };
 
+  const handleLearningPlans = () => {
+    handleUserMenuClose();
+    navigate('/learning-plans');
+  };
+
   const handleSettings = () => {
     handleUserMenuClose();
     navigate('/settings');
@@ -184,7 +189,6 @@ function NavigationBar() {
           </Box>
           <Divider />
           <MenuItem onClick={handleViewProfile}>View profile</MenuItem>
-          <MenuItem onClick={handleSettings}>My Learning Plans</MenuItem>
           <MenuItem onClick={handleSettings}>Settings</MenuItem>
           <Divider />
           <MenuItem onClick={handleSignOut}>Sign out</MenuItem>
