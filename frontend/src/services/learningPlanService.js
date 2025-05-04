@@ -8,16 +8,30 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+// Helper function to normalize resources (handles both string and array inputs)
+function normalizeResources(resources) {
+  if (Array.isArray(resources)) {
+    return resources.map(res => res.trim());
+  }
+  return resources.split(',').map(res => res.trim());
+}
+
 export const LearningPlanService = {
+
+  async getAllPublicLearningPlans() {
+    return axios.get(`${API_URL}/api/learning-plans/public`, {
+      headers: authHeaders()
+    });
+  },
+  
   async createLearningPlan(planData) {
     return axios.post(
       `${API_URL}/api/learning-plans`,
       {
-        topic: planData.topic,
-        description: planData.description,
-        resources: planData.resources.split(',').map(res => res.trim()),
-        startDate: planData.startDate,
-        endDate: planData.endDate
+        ...planData,
+        resources: normalizeResources(planData.resources),
+        userId: localStorage.getItem('userId'), // Include user ID
+        createdAt: new Date().toISOString() // Add creation timestamp
       },
       {
         withCredentials: true,
@@ -54,7 +68,8 @@ export const LearningPlanService = {
       `${API_URL}/api/learning-plans/${planId}`,
       {
         ...updateData,
-        resources: updateData.resources.split(',').map(res => res.trim())
+        resources: normalizeResources(updateData.resources),
+        updatedAt: new Date().toISOString() // Add update timestamp
       },
       {
         withCredentials: true,
@@ -77,8 +92,18 @@ export const LearningPlanService = {
   },
 
   async shareLearningPlan(planId) {
-    // This could be extended to integrate with actual sharing functionality
-    // For now, we'll just return the plan data
-    return this.getLearningPlanById(planId);
+    const response = await this.getLearningPlanById(planId);
+    return {
+      ...response.data,
+      shareText: this.generateShareText(response.data)
+    };
+  },
+
+  generateShareText(plan) {
+    return `Check out my learning plan: ${plan.topic}\n\n` +
+           `${plan.description}\n\n` +
+           `Resources:\n${plan.resources.join('\n')}\n\n` +
+           `Schedule: ${new Date(plan.startDate).toLocaleDateString()} - ` +
+           `${new Date(plan.endDate).toLocaleDateString()}`;
   }
 };
