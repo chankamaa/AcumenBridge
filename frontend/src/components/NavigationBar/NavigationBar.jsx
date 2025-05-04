@@ -130,6 +130,14 @@ function NavigationBar() {
               <Button
                 color="inherit"
                 component={Link}
+                to="/community/plans"
+                sx={{ textTransform: 'none', display: { xs: 'none', md: 'inline-flex' } }}
+              >
+                Browse Community Plans
+              </Button>
+              <Button
+                color="inherit"
+                component={Link}
                 to="/learning-plans"
                 sx={{ textTransform: 'none', display: { xs: 'none', md: 'inline-flex' } }}
               >
