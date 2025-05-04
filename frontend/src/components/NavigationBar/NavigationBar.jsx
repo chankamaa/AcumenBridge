@@ -138,7 +138,7 @@ function NavigationBar() {
                 to="/community/plans"
                 sx={{ textTransform: 'none', display: { xs: 'none', md: 'inline-flex' } }}
               >
-                Browse Community Plans
+                Browse Learning Plans
               </Button>
               <IconButton
                 color="inherit"
