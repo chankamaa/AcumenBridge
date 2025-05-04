@@ -189,6 +189,7 @@ function NavigationBar() {
           </Box>
           <Divider />
           <MenuItem onClick={handleViewProfile}>View profile</MenuItem>
+          <MenuItem onClick={handleLearningPlans}>My Learning Plans</MenuItem>
           <MenuItem onClick={handleSettings}>Settings</MenuItem>
           <Divider />
           <MenuItem onClick={handleSignOut}>Sign out</MenuItem>
