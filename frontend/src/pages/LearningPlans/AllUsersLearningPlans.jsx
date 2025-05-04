@@ -6,6 +6,8 @@ const AllUsersLearningPlans = () => {
   const [allPlans, setAllPlans] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     fetchAllLearningPlans();
@@ -24,16 +26,27 @@ const AllUsersLearningPlans = () => {
   };
 
   const handleRepost = async (planId) => {
+    const userConfirmed = window.confirm('Are you sure you want to repost this learning plan?');
+    
+    if (!userConfirmed) return;
+
     try {
+      setIsLoading(true);
       await LearningPlanService.repostLearningPlan(planId);
-      // Visual feedback instead of alert
+      
       setAllPlans(plans => plans.map(plan => 
         plan.id === planId 
           ? { ...plan, reposted: true, repostCount: (plan.repostCount || 0) + 1 }
           : plan
       ));
+      
+      setSuccessMessage('Learning plan reposted successfully!');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to repost learning plan');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -44,10 +57,22 @@ const AllUsersLearningPlans = () => {
         <p className="subtitle">Discover and share knowledge from the community</p>
       </header>
       
-      {error && <div className="alert alert-danger">{error}</div>}
+      {error && (
+        <div className="alert alert-danger">
+          <i className="fas fa-exclamation-circle"></i> {error}
+        </div>
+      )}
+      
+      {showSuccess && (
+        <div className="alert alert-success">
+          <i className="fas fa-check-circle"></i> {successMessage}
+        </div>
+      )}
 
       {isLoading ? (
-        <div className="loading-spinner">Loading...</div>
+        <div className="loading-spinner">
+          <i className="fas fa-spinner fa-spin"></i> Loading...
+        </div>
       ) : (
         <div className="plans-container">
           {allPlans.length === 0 ? (
@@ -69,18 +94,26 @@ const AllUsersLearningPlans = () => {
                           {plan.username || `User ${plan.userId?.substring(0, 6) || 'Anonymous'}`}
                         </span>
                         <span className="post-date">
-                          {new Date(plan.createdAt).toLocaleDateString()}
+                          <i className="far fa-clock"></i> {new Date(plan.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
-                    <button 
-                    onClick={() => handleRepost(plan.id)}
-                    className={`repost-btn ${plan.reposted ? 'reposted' : ''}`}
-                    aria-label="Repost this plan"
-                    >
-                    <i className={`fas fa-share ${plan.reposted ? 'text-blue-500' : 'text-gray-500'}`}></i>
-                    {plan.repostCount > 0 && <span className="repost-count">{plan.repostCount}</span>}
-                    </button>
+                    <div className="repost-container">
+                      <button 
+                        onClick={() => handleRepost(plan.id)}
+                        className={`repost-btn ${plan.reposted ? 'reposted' : ''}`}
+                        disabled={isLoading}
+                        aria-label="Repost this plan"
+                      >
+                        <i className={`fas fa-retweet ${plan.reposted ? 'text-blue-500' : 'text-gray-500'}`}></i>
+                        {plan.repostCount > 0 && (
+                          <span className="repost-count">{plan.repostCount}</span>
+                        )}
+                      </button>
+                      {plan.reposted && (
+                        <span className="repost-tooltip">Reposted!</span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="card-content">
