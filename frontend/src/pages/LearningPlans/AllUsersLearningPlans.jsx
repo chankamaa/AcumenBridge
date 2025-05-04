@@ -74,12 +74,12 @@ const AllUsersLearningPlans = () => {
                       </div>
                     </div>
                     <button 
-                      onClick={() => handleRepost(plan.id)}
-                      className={`repost-btn ${plan.reposted ? 'reposted' : ''}`}
-                      aria-label="Repost this plan"
+                    onClick={() => handleRepost(plan.id)}
+                    className={`repost-btn ${plan.reposted ? 'reposted' : ''}`}
+                    aria-label="Repost this plan"
                     >
-                      <i className="fas fa-retweet"></i>
-                      {plan.repostCount > 0 && <span>{plan.repostCount}</span>}
+                    <i className={`fas fa-share ${plan.reposted ? 'text-blue-500' : 'text-gray-500'}`}></i>
+                    {plan.repostCount > 0 && <span className="repost-count">{plan.repostCount}</span>}
                     </button>
                   </div>
 
