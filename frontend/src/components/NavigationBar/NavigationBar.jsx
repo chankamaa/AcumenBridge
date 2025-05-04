@@ -135,14 +135,6 @@ function NavigationBar() {
               >
                 Browse Community Plans
               </Button>
-              <Button
-                color="inherit"
-                component={Link}
-                to="/learning-plans"
-                sx={{ textTransform: 'none', display: { xs: 'none', md: 'inline-flex' } }}
-              >
-                Learning Plans
-              </Button>
               <IconButton
                 color="inherit"
                 component={Link}
@@ -192,6 +184,7 @@ function NavigationBar() {
           </Box>
           <Divider />
           <MenuItem onClick={handleViewProfile}>View profile</MenuItem>
+          <MenuItem onClick={handleSettings}>My Learning Plans</MenuItem>
           <MenuItem onClick={handleSettings}>Settings</MenuItem>
           <Divider />
           <MenuItem onClick={handleSignOut}>Sign out</MenuItem>
