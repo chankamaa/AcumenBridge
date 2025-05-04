@@ -12,6 +12,7 @@ import CreatePostPage from './pages/CreatePost/CreatePostPage';
 import ConnectionsPage from './pages/ConnectionsPage/ConnectionsPage';
 import UserProfilePage from './pages/UserProfilePage/UserProfilePage';
 import SearchPage from './pages/SearchPage/SearchPage';
+import LearningPlans from './pages/LearningPlans/LearningPlans';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path='/connections' element={<ConnectionsPage />} />
           <Route path="/profile/:id" element={<UserProfilePage />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/learning-plans" element={<LearningPlans />} />
         </Routes>
       </Router>
     </>
