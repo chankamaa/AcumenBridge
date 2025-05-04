@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 
@@ -67,6 +68,43 @@ public class LearningPlanController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(savedPlan);
+    }
+
+    @PostMapping("/{id}/repost")
+    public ResponseEntity<?> repostLearningPlan(
+        @PathVariable String id,
+        @AuthenticationPrincipal Jwt jwt
+    ) {
+        String userId = jwt.getSubject();
+        
+        // Find the original plan
+        LearningPlan originalPlan = repository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
+        
+        // Create new repost
+        LearningPlan repost = LearningPlan.builder()
+            .topic(originalPlan.getTopic())
+            .description(originalPlan.getDescription())
+            .resources(originalPlan.getResources())
+            .startDate(originalPlan.getStartDate())
+            .endDate(originalPlan.getEndDate())
+            .userId(userId)
+            .originalPlanId(originalPlan.getOriginalPlanId() != null ? 
+                            originalPlan.getOriginalPlanId() : originalPlan.getId())
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
+        
+        // Optional: increment repost count on original plan
+        if (originalPlan.getRepostCount() != null) {
+            originalPlan.setRepostCount(originalPlan.getRepostCount() + 1);
+        } else {
+            originalPlan.setRepostCount(1);
+        }
+        repository.save(originalPlan);
+        
+        LearningPlan savedRepost = repository.save(repost);
+        return ResponseEntity.ok(savedRepost);
     }
 
     @PutMapping("/{id}")
