@@ -127,6 +127,14 @@ function NavigationBar() {
               >
                 Home
               </Button>
+              <Button
+                color="inherit"
+                component={Link}
+                to="/learning-plans"
+                sx={{ textTransform: 'none', display: { xs: 'none', md: 'inline-flex' } }}
+              >
+                Learning Plans
+              </Button>
               <IconButton
                 color="inherit"
                 component={Link}
