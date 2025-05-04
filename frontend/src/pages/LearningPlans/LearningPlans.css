@@ -193,3 +193,60 @@
   .btn-share:hover {
     background-color: #218838;
   }
+
+  .plan-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.5rem;
+  }
+  
+  .plan-created {
+    font-style: italic;
+  }
+
+  /* User info section styles */
+.plan-user-info {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 10px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #3f51b5;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.username {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Adjust existing card styles to accommodate new user section */
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  /* ... existing styles ... */
+}
+
+.plan-header {
+  padding: 0 10px;
+  /* ... existing styles ... */
+}
+
