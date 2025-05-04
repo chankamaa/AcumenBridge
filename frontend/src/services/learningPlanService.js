@@ -23,7 +23,7 @@ export const LearningPlanService = {
       headers: authHeaders()
     });
   },
-  
+
   async createLearningPlan(planData) {
     return axios.post(
       `${API_URL}/api/learning-plans`,
@@ -97,6 +97,17 @@ export const LearningPlanService = {
       ...response.data,
       shareText: this.generateShareText(response.data)
     };
+  },
+
+  // Add this method to your service
+  repostLearningPlan: async (planId) => {
+    return axios.post(
+      `${API_URL}/api/learning-plans/${planId}/repost`,
+      {},
+      {
+        headers: authHeaders()
+      }
+    );
   },
 
   generateShareText(plan) {
