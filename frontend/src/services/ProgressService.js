@@ -23,6 +23,12 @@ export const ProgressService = {
     });
   },
 
+  async getAllPublicProgress() {
+    return axios.get(`${API_URL}/api/progress/public`, {
+      headers: authHeaders()
+    });
+  },
+
   async getProgressById(id) {
     return axios.get(`${API_URL}/api/progress/${id}`, {
       headers: authHeaders()
