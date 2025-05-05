@@ -90,6 +90,7 @@ function EditProfileDialog({ open, handleClose, user, onSave, onDelete }) {
   };
 
   // Functions to handle delete confirmation dialog
+  // Open and close delete confirmation dialog
   const openDeleteDialog = () => {
     setOpenDeleteConfirm(true);
   };
