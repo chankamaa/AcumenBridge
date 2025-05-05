@@ -13,6 +13,7 @@ import ConnectionsPage from './pages/ConnectionsPage/ConnectionsPage';
 import UserProfilePage from './pages/UserProfilePage/UserProfilePage';
 import SearchPage from './pages/SearchPage/SearchPage';
 import Progress from './pages/Progress/Progress';
+import AllUsersProgress from './pages/Progress/AllUsersProgress';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/create-post" element={<CreatePostPage/>} />
           <Route path='/connections' element={<ConnectionsPage />} />
           <Route path="/progress" element={<Progress />} />
+          <Route path="/community/progress" element={<AllUsersProgress />} />
           <Route path="/profile/:id" element={<UserProfilePage />} />
           <Route path="/search" element={<SearchPage />} />
         </Routes>
