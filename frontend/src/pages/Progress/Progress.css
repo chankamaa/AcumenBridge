@@ -171,3 +171,91 @@
       grid-template-columns: 1fr;
     }
   }
+
+  /* Community Progress Styles */
+.community-progress-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.community-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.community-header .subtitle {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+/* User ID Header */
+.user-id-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background-color: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #4f46e5;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.user-id {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+/* Progress Card */
+.progress-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.progress-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-content {
+  padding: 1.25rem;
+}
+
+.achievement-type {
+  display: inline-block;
+  background: #e0e7ff;
+  color: #4f46e5;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+/* Progress Bar Colors */
+.progress-bar-container {
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.progress-bar {
+  height: 100%;
+  transition: width 0.3s ease;
+}
