@@ -26,3 +26,6 @@ Skill Sharing and Learning platform
 ‼️ ஒவ்வொரு நாளும் வேலை commit செய்து, உங்கள் தனிப்பட்ட branch-இல் push செய்யவும்.
   குறைந்தபட்சம் feature ஒன்று முழுமையாக இருக்க வேண்டும்.
 ‼️ Pull request செய்வதற்கு முன், feature functionally complete ஆக இருக்க வேண்டும்.
+
+
+ ./mvnw spring-boot:run
