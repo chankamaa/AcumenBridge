@@ -127,6 +127,14 @@ function NavigationBar() {
               >
                 Home
               </Button>
+              <Button
+                color="inherit"
+                component={Link}
+                to="/progress"
+                sx={{ textTransform: 'none', display: { xs: 'none', md: 'inline-flex' } }}
+              >
+                Progress
+              </Button>
               <IconButton
                 color="inherit"
                 component={Link}
