@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 function ProfileActions({ onEdit }) {
   const navigate = useNavigate();
+  // Function to handle the edit button click
 
   return (
     <Box
