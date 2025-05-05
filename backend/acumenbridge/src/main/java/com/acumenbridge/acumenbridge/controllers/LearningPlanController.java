@@ -3,10 +3,14 @@ package com.acumenbridge.acumenbridge.controllers;
 import com.acumenbridge.acumenbridge.models.LearningPlan;
 import com.acumenbridge.acumenbridge.repositories.LearningPlanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -18,39 +22,140 @@ public class LearningPlanController {
     private LearningPlanRepository repository;
 
     @GetMapping
-    public ResponseEntity<List<LearningPlan>> getAllLearningPlans() {
-        List<LearningPlan> plans = repository.findAll();
+    public ResponseEntity<List<LearningPlan>> getAllLearningPlans(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        List<LearningPlan> plans = repository.findByUserId(userId);
         return ResponseEntity.ok(plans);
     }
 
+    @GetMapping("/public")
+    public ResponseEntity<List<LearningPlan>> getAllPublicLearningPlans() {
+        List<LearningPlan> plans = repository.findAll();
+        // You might want to add filtering or join with user data here
+        return ResponseEntity.ok(plans);
+    }
 
     @GetMapping("/{id}")
-    public LearningPlan getById(@PathVariable String id) {
-        return repository.findById(id).orElse(null);
+    public ResponseEntity<?> getById(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        LearningPlan plan = repository.findById(id).orElse(null);
+        
+        if (plan == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Learning plan not found");
+        }
+        
+        if (!plan.getUserId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Not authorized to access this learning plan");
+        }
+        
+        return ResponseEntity.ok(plan);
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody LearningPlan plan) {
+    public ResponseEntity<?> create(
+            @RequestBody LearningPlan plan,
+            @AuthenticationPrincipal Jwt jwt) {
+        
+        String userId = jwt.getSubject();
+        
+        plan.setUserId(userId);
+        plan.setCreatedAt(LocalDateTime.now());
+        plan.setUpdatedAt(LocalDateTime.now());
+        
         LearningPlan savedPlan = repository.save(plan);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body("Learning plan created successfully with ID: " + savedPlan.getId());
+                .body(savedPlan);
+    }
+
+    @PostMapping("/{id}/repost")
+    public ResponseEntity<?> repostLearningPlan(
+        @PathVariable String id,
+        @AuthenticationPrincipal Jwt jwt
+    ) {
+        String userId = jwt.getSubject();
+        
+        // Find the original plan
+        LearningPlan originalPlan = repository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
+        
+        // Create new repost
+        LearningPlan repost = LearningPlan.builder()
+            .topic(originalPlan.getTopic())
+            .description(originalPlan.getDescription())
+            .resources(originalPlan.getResources())
+            .startDate(originalPlan.getStartDate())
+            .endDate(originalPlan.getEndDate())
+            .userId(userId)
+            .originalPlanId(originalPlan.getOriginalPlanId() != null ? 
+                            originalPlan.getOriginalPlanId() : originalPlan.getId())
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
+        
+        // Optional: increment repost count on original plan
+        if (originalPlan.getRepostCount() != null) {
+            originalPlan.setRepostCount(originalPlan.getRepostCount() + 1);
+        } else {
+            originalPlan.setRepostCount(1);
+        }
+        repository.save(originalPlan);
+        
+        LearningPlan savedRepost = repository.save(repost);
+        return ResponseEntity.ok(savedRepost);
     }
 
     @PutMapping("/{id}")
-    public LearningPlan update(@PathVariable String id, @RequestBody LearningPlan updatedPlan) {
+    public ResponseEntity<?> update(
+            @PathVariable String id,
+            @RequestBody LearningPlan updatedPlan,
+            @AuthenticationPrincipal Jwt jwt) {
+        
+        String userId = jwt.getSubject();
+        
+        // Check if plan exists and belongs to user
+        LearningPlan existingPlan = repository.findById(id).orElse(null);
+        if (existingPlan == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Learning plan not found");
+        }
+        
+        if (!existingPlan.getUserId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Not authorized to update this learning plan");
+        }
+        
+        // Update fields
         updatedPlan.setId(id);
-        return repository.save(updatedPlan);
+        updatedPlan.setUserId(userId);
+        updatedPlan.setCreatedAt(existingPlan.getCreatedAt());
+        updatedPlan.setUpdatedAt(LocalDateTime.now());
+        
+        LearningPlan savedPlan = repository.save(updatedPlan);
+        return ResponseEntity.ok(savedPlan);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable String id) {
-        if (repository.existsById(id)) {
-            repository.deleteById(id);
-            return ResponseEntity.ok("Successfully deleted Learning Plan with ID: " + id);
-        } else {
+    public ResponseEntity<?> delete(
+            @PathVariable String id,
+            @AuthenticationPrincipal Jwt jwt) {
+        
+        String userId = jwt.getSubject();
+        
+        LearningPlan plan = repository.findById(id).orElse(null);
+        if (plan == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Learning plan with ID " + id + " not found.");
+                    .body("Learning plan not found");
         }
+        
+        if (!plan.getUserId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Not authorized to delete this learning plan");
+        }
+        
+        repository.deleteById(id);
+        return ResponseEntity.ok("Successfully deleted Learning Plan with ID: " + id);
     }
 }

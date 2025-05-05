@@ -64,6 +64,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT,    "/posts/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/posts/**").authenticated()
 
+                .requestMatchers("/api/learning-plans/**").authenticated()
+
                 // LIKES: require auth
                 .requestMatchers(HttpMethod.POST, "/posts/*/like").authenticated()
                 .requestMatchers(HttpMethod.POST, "/posts/*/unlike").authenticated()
