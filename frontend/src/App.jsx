@@ -12,6 +12,7 @@ import CreatePostPage from './pages/CreatePost/CreatePostPage';
 import ConnectionsPage from './pages/ConnectionsPage/ConnectionsPage';
 import UserProfilePage from './pages/UserProfilePage/UserProfilePage';
 import SearchPage from './pages/SearchPage/SearchPage';
+import Progress from './pages/Progress/Progress';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/create-post" element={<CreatePostPage/>} />
           <Route path='/connections' element={<ConnectionsPage />} />
+          <Route path="/progress" element={<Progress />} />
           <Route path="/profile/:id" element={<UserProfilePage />} />
           <Route path="/search" element={<SearchPage />} />
         </Routes>
