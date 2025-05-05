@@ -135,6 +135,14 @@ function NavigationBar() {
               >
                 Progress
               </Button>
+              <Button
+                color="inherit"
+                component={Link}
+                to="/community/progress"
+                sx={{ textTransform: 'none', display: { xs: 'none', md: 'inline-flex' } }}
+              >
+                All Progress
+              </Button>
               <IconButton
                 color="inherit"
                 component={Link}
