@@ -36,6 +36,11 @@ public class ProgressController {
         return ResponseEntity.ok(progressRepository.findByUserId(jwt.getSubject()));
     }
 
+    @GetMapping("/public")
+    public ResponseEntity<List<Progress>> getAllPublicProgress() {
+        return ResponseEntity.ok(progressRepository.findAll());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Progress> getProgressById(
             @PathVariable String id,
