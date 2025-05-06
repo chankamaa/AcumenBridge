@@ -1,26 +1,226 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { ProgressService } from '../../services/ProgressService';
 import { AuthContext } from '../../context/AuthContext';
 import './Progress.css';
 
 const Progress = () => {
   const { user } = useContext(AuthContext);
+  const formRef = useRef(null); // Create a ref for the form
   const [progressList, setProgressList] = useState([]);
   const [formData, setFormData] = useState({
     achievementType: '',
     head: '',
     description: '',
     completed: 0,
-    toComplete: 100
+    toComplete: 100,
+    template: 'default'
   });
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Template options with colors and labels
+  const templateOptions = [
+    // Default
+    { 
+      value: 'default', 
+      label: 'Default', 
+      type: 'color',
+      style: { backgroundColor: '#ffffff' } 
+    },
+    
+    // Blue variations
+    { 
+      value: 'blue', 
+      label: 'Blue Solid', 
+      type: 'color',
+      style: { backgroundColor: '#e0f2fe' } 
+    },
+    { 
+      value: 'blue-dots', 
+      label: 'Blue Dots', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: 'radial-gradient(#3b82f6 1px, transparent 1px)',
+        backgroundSize: '15px 15px'
+      } 
+    },
+    { 
+      value: 'blue-lines', 
+      label: 'Blue Lines', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: 'repeating-linear-gradient(45deg, #bfdbfe, #bfdbfe 2px, #93c5fd 2px, #93c5fd 4px)'
+      } 
+    },
+    { 
+      value: 'blue-grid', 
+      label: 'Blue Grid', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: `
+          linear-gradient(to right, #bfdbfe 1px, transparent 1px),
+          linear-gradient(to bottom, #bfdbfe 1px, transparent 1px)
+        `,
+        backgroundSize: '15px 15px'
+      } 
+    },
+    { 
+      value: 'blue-diagonal', 
+      label: 'Blue Diagonal', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: 'repeating-linear-gradient(-45deg, #bfdbfe, #bfdbfe 2px, #93c5fd 2px, #93c5fd 4px)'
+      } 
+    },
+    
+    // Green variations
+    { 
+      value: 'green', 
+      label: 'Green Solid', 
+      type: 'color',
+      style: { backgroundColor: '#dcfce7' } 
+    },
+    { 
+      value: 'green-dots', 
+      label: 'Green Dots', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: 'radial-gradient(#10b981 1px, transparent 1px)',
+        backgroundSize: '15px 15px'
+      } 
+    },
+    { 
+      value: 'green-lines', 
+      label: 'Green Lines', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: 'repeating-linear-gradient(45deg, #d1fae5, #d1fae5 2px, #a7f3d0 2px, #a7f3d0 4px)'
+      } 
+    },
+    { 
+      value: 'green-grid', 
+      label: 'Green Grid', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: `
+          linear-gradient(to right, #d1fae5 1px, transparent 1px),
+          linear-gradient(to bottom, #d1fae5 1px, transparent 1px)
+        `,
+        backgroundSize: '15px 15px'
+      } 
+    },
+    { 
+      value: 'green-diagonal', 
+      label: 'Green Diagonal', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: 'repeating-linear-gradient(-45deg, #d1fae5, #d1fae5 2px, #a7f3d0 2px, #a7f3d0 4px)'
+      } 
+    },
+    
+    // Purple variations
+    { 
+      value: 'purple', 
+      label: 'Purple Solid', 
+      type: 'color',
+      style: { backgroundColor: '#f3e8ff' } 
+    },
+    { 
+      value: 'purple-dots', 
+      label: 'Purple Dots', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: 'radial-gradient(#8b5cf6 1px, transparent 1px)',
+        backgroundSize: '15px 15px'
+      } 
+    },
+    { 
+      value: 'purple-lines', 
+      label: 'Purple Lines', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: 'repeating-linear-gradient(45deg, #ddd6fe, #ddd6fe 2px, #c4b5fd 2px, #c4b5fd 4px)'
+      } 
+    },
+    { 
+      value: 'purple-grid', 
+      label: 'Purple Grid', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: `
+          linear-gradient(to right, #ddd6fe 1px, transparent 1px),
+          linear-gradient(to bottom, #ddd6fe 1px, transparent 1px)
+        `,
+        backgroundSize: '15px 15px'
+      } 
+    },
+    { 
+      value: 'purple-diagonal', 
+      label: 'Purple Diagonal', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: 'repeating-linear-gradient(-45deg, #ddd6fe, #ddd6fe 2px, #c4b5fd 2px, #c4b5fd 4px)'
+      } 
+    },
+    
+    // Orange variations
+    { 
+      value: 'orange', 
+      label: 'Orange Solid', 
+      type: 'color',
+      style: { backgroundColor: '#ffedd5' } 
+    },
+    { 
+      value: 'orange-dots', 
+      label: 'Orange Dots', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: 'radial-gradient(#f97316 1px, transparent 1px)',
+        backgroundSize: '15px 15px'
+      } 
+    },
+    { 
+      value: 'orange-lines', 
+      label: 'Orange Lines', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: 'repeating-linear-gradient(45deg, #fed7aa, #fed7aa 2px, #fdba74 2px, #fdba74 4px)'
+      } 
+    },
+    { 
+      value: 'orange-grid', 
+      label: 'Orange Grid', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: `
+          linear-gradient(to right, #fed7aa 1px, transparent 1px),
+          linear-gradient(to bottom, #fed7aa 1px, transparent 1px)
+        `,
+        backgroundSize: '15px 15px'
+      } 
+    },
+    { 
+      value: 'orange-diagonal', 
+      label: 'Orange Diagonal', 
+      type: 'pattern',
+      style: { 
+        backgroundImage: 'repeating-linear-gradient(-45deg, #fed7aa, #fed7aa 2px, #fdba74 2px, #fdba74 4px)'
+      } 
+    }
+  ];
+
   useEffect(() => {
     fetchAllProgress();
   }, []);
+
+   // Scroll to form when editing
+   useEffect(() => {
+    if (editingId && formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [editingId]);
 
   const fetchAllProgress = async () => {
     setIsLoading(true);
@@ -40,6 +240,13 @@ const Progress = () => {
     setFormData(prev => ({
       ...prev,
       [name]: name === 'completed' || name === 'toComplete' ? parseInt(value) : value
+    }));
+  };
+
+  const handleTemplateSelect = (templateValue) => {
+    setFormData(prev => ({
+      ...prev,
+      template: templateValue
     }));
   };
 
@@ -78,7 +285,8 @@ const Progress = () => {
       head: '',
       description: '',
       completed: 0,
-      toComplete: 100
+      toComplete: 100,
+      template: 'default'
     });
     setEditingId(null);
   };
@@ -89,7 +297,8 @@ const Progress = () => {
       head: progress.head,
       description: progress.description,
       completed: progress.completed,
-      toComplete: progress.toComplete
+      toComplete: progress.toComplete,
+      template: progress.template || 'default'
     });
     setEditingId(progress.id);
   };
@@ -121,8 +330,19 @@ const Progress = () => {
       {error && <div className="alert alert-danger">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 
-      <div className="progress-form">
-        <h2>{editingId ? 'Edit Progress' : 'Add New Progress'}</h2>
+      <div className="progress-form" ref={formRef}>
+        <div className="form-header">
+          <h2>{editingId ? '✏️ Edit Progress' : '➕ Add New Progress'}</h2>
+          {editingId && (
+            <button 
+              onClick={resetForm}
+              className="btn-clear"
+            >
+              Cancel Edit
+            </button>
+          )}
+        </div>
+        <br></br>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Achievement Type</label>
@@ -133,11 +353,11 @@ const Progress = () => {
               required
             >
               <option value="">Select Type</option>
-              <option value="Course">Course</option>
-              <option value="Project">Project</option>
-              <option value="Skill">Skill</option>
-              <option value="Certification">Certification</option>
-              <option value="Other">Other</option>
+                <option value="Course">📚 Course</option>
+                <option value="Project">🛠️ Project</option>
+                <option value="Skill">🏆 Skill</option>
+                <option value="Certification">🏅 Certification</option>
+                <option value="Other">✨ Other</option>
             </select>
           </div>
           
@@ -173,6 +393,7 @@ const Progress = () => {
                 onChange={handleChange}
                 required
               />
+              <span className="input-icon">✓</span>
             </div>
             
             <div className="form-group">
@@ -185,6 +406,35 @@ const Progress = () => {
                 onChange={handleChange}
                 required
               />
+              <span className="input-icon">⏱️</span>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Card Design</label>
+            <div className="design-selection">
+              {['blue', 'green', 'purple', 'orange'].map(color => (
+                <div key={color} className="color-group">
+                  <h4>{color.charAt(0).toUpperCase() + color.slice(1)}</h4>
+                  <div className="template-options">
+                    {templateOptions
+                      .filter(opt => opt.value === color || opt.value.startsWith(`${color}-`))
+                      .map(option => (
+                        <div 
+                          key={option.value}
+                          className={`template-option ${formData.template === option.value ? 'selected' : ''}`}
+                          onClick={() => handleTemplateSelect(option.value)}
+                          style={option.style}
+                          title={option.label}
+                        >
+                          {formData.template === option.value && (
+                            <i className="fas fa-check"></i>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
           
@@ -231,7 +481,11 @@ const Progress = () => {
           ) : (
             <div className="progress-grid">
               {progressList.map(progress => (
-                <div key={progress.id} className="progress-card">
+                <div 
+                key={progress.id} 
+                className={`progress-card template-${progress.template || 'default'}`}
+              >
+                <div className="card-content-wrapper">
                   <div className="card-header">
                     <span className="achievement-type">{progress.achievementType}</span>
                     <span className="date">{new Date(progress.createdAt).toLocaleDateString()}</span>
@@ -270,6 +524,7 @@ const Progress = () => {
                     </button>
                   </div>
                 </div>
+              </div>
               ))}
             </div>
           )}
