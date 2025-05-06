@@ -28,6 +28,9 @@ public class ProgressController {
         progress.setUserId(jwt.getSubject());
         progress.setCreatedAt(LocalDateTime.now());
         progress.setUpdatedAt(LocalDateTime.now());
+        if (progress.getTemplate() == null) {
+            progress.setTemplate("default");
+        }
         return ResponseEntity.ok(progressRepository.save(progress));
     }
 
@@ -63,6 +66,32 @@ public class ProgressController {
             progress.setDescription(updatedProgress.getDescription());
             progress.setCompleted(updatedProgress.getCompleted());
             progress.setToComplete(updatedProgress.getToComplete());
+            progress.setTemplate(updatedProgress.getTemplate()); // Add this line
+            progress.setUpdatedAt(LocalDateTime.now());
+            return ResponseEntity.ok(progressRepository.save(progress));
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/{id}/like")
+    public ResponseEntity<Progress> toggleLike(
+            @PathVariable String id,
+            @AuthenticationPrincipal Jwt jwt) {
+        Optional<Progress> progressOpt = progressRepository.findById(id);
+        if (progressOpt.isPresent()) {
+            Progress progress = progressOpt.get();
+            String userId = jwt.getSubject();
+            
+            if (progress.getLikedBy().contains(userId)) {
+                // Unlike
+                progress.getLikedBy().remove(userId);
+                progress.setLikes(progress.getLikes() - 1);
+            } else {
+                // Like
+                progress.getLikedBy().add(userId);
+                progress.setLikes(progress.getLikes() + 1);
+            }
+            
             progress.setUpdatedAt(LocalDateTime.now());
             return ResponseEntity.ok(progressRepository.save(progress));
         }
