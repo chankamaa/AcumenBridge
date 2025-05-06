@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ProgressService } from '../../services/ProgressService';
-import './Progress.css'; // Reuse the same CSS file
+import './Progress.css';
 
 const AllUsersProgress = () => {
   const [allProgress, setAllProgress] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [localLikes, setLocalLikes] = useState({}); // Track likes locally
 
   useEffect(() => {
     fetchAllUsersProgress();
@@ -16,6 +17,15 @@ const AllUsersProgress = () => {
     try {
       const response = await ProgressService.getAllPublicProgress();
       setAllProgress(response.data);
+      // Initialize local likes state
+      const likesState = {};
+      response.data.forEach(progress => {
+        likesState[progress.id] = {
+          count: progress.likes || 0,
+          liked: false // You might want to check if current user has liked this
+        };
+      });
+      setLocalLikes(likesState);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch all progress');
     } finally {
@@ -23,9 +33,54 @@ const AllUsersProgress = () => {
     }
   };
 
+  const handleLike = async (progressId) => {
+    try {
+      // Optimistic UI update
+      setLocalLikes(prev => ({
+        ...prev,
+        [progressId]: {
+          count: prev[progressId].liked ? prev[progressId].count - 1 : prev[progressId].count + 1,
+          liked: !prev[progressId].liked
+        }
+      }));
+
+      // API call to update like
+      await ProgressService.toggleLike(progressId);
+      
+      // Optional: Refresh data to ensure sync
+      // fetchAllUsersProgress();
+    } catch (err) {
+      // Revert on error
+      setLocalLikes(prev => ({
+        ...prev,
+        [progressId]: {
+          count: prev[progressId].count,
+          liked: prev[progressId].liked
+        }
+      }));
+      setError('Failed to update like');
+    }
+  };
+
   const calculateProgressPercentage = (completed, toComplete) => {
     if (toComplete <= 0) return 0;
     return Math.min(100, Math.round((completed / toComplete) * 100));
+  };
+
+  // Function to get icon for achievement type
+  const getAchievementIcon = (type) => {
+    switch(type) {
+      case 'Course':
+        return <i className="fa-solid fa-graduation-cap"></i>;
+      case 'Project':
+        return <i className="fa-solid fa-shield"></i>;
+      case 'Skill':
+        return <i className="fa-solid fa-trophy"></i>;
+      case 'Certification':
+        return <i className="fa-solid fa-award"></i>;
+      default:
+        return <i className="fa-solid fa-star"></i>;
+    }
   };
 
   return (
@@ -49,22 +104,33 @@ const AllUsersProgress = () => {
           ) : (
             <div className="progress-grid">
               {allProgress.map(progress => (
-                <div key={progress.id} className="progress-card">
-                  {/* User ID header */}
-                  <div className="user-id-header">
-                    <div className="user-avatar">
-                      {progress.userId?.charAt(0).toUpperCase() || 'U'}
+                <div 
+                  key={progress.id} 
+                  className={`progress-card template-${progress.template || 'default'}`}
+                >
+                  <div className="card-content-wrapper">
+                    {/* User header */}
+                    <div className="card-header">
+                      <div className="user-info">
+                        <div className="user-avatar">
+                          {progress.userId?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                        <span className="user-id">User {progress.userId?.substring(0, 6) || 'Anonymous'}</span>
+                      </div>
+                      <span className="date">
+                        {new Date(progress.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
-                    <span className="user-id">User: {progress.userId || 'Anonymous'}</span>
-                  </div>
-
-                  <div className="card-content">
+                    
+                    {/* Content with achievement icon */}
                     <div className="achievement-type">
-                      {progress.achievementType}
+                      {getAchievementIcon(progress.achievementType)}
+                      <span>{progress.achievementType}</span>
                     </div>
-                    <h3>{progress.head}</h3>
+                    <h3><b>{progress.head}</b></h3>
                     <p className="description">{progress.description}</p>
                     
+                    {/* Progress bar */}
                     <div className="progress-section">
                       <div className="progress-info">
                         <span>{progress.completed} of {progress.toComplete} completed</span>
@@ -78,6 +144,15 @@ const AllUsersProgress = () => {
                             backgroundColor: getProgressColor(calculateProgressPercentage(progress.completed, progress.toComplete))
                           }}
                         ></div>
+                      </div>
+                      <div className="like-section">
+                        <button 
+                          className={`like-button ${localLikes[progress.id]?.liked ? 'liked' : ''}`}
+                          onClick={() => handleLike(progress.id)}
+                        >
+                          <i class="fa-regular fa-heart"></i>
+                          <span>{localLikes[progress.id]?.count || 0}</span>
+                        </button>
                       </div>
                     </div>
                   </div>
