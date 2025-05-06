@@ -9,6 +9,9 @@ function authHeaders() {
 
 export const ProgressService = {
   async createProgress(progressData) {
+    if (!progressData.template) {
+      progressData.template = 'default';
+    }
     return axios.post(`${API_URL}/api/progress`, progressData, {
       headers: {
         ...authHeaders(),
@@ -46,6 +49,28 @@ export const ProgressService = {
 
   async deleteProgress(id) {
     return axios.delete(`${API_URL}/api/progress/${id}`, {
+      headers: authHeaders()
+    });
+  },
+
+  // New like functionality
+  async toggleLike(progressId) {
+    return axios.put(`${API_URL}/api/progress/${progressId}/like`, {}, {
+      headers: {
+        ...authHeaders(),
+        'Content-Type': 'application/json'
+      }
+    });
+  },
+
+  async getLikes(progressId) {
+    return axios.get(`${API_URL}/api/progress/${progressId}/likes`, {
+      headers: authHeaders()
+    });
+  },
+
+  async checkIfLiked(progressId) {
+    return axios.get(`${API_URL}/api/progress/${progressId}/liked`, {
       headers: authHeaders()
     });
   }
