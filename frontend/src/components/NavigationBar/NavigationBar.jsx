@@ -57,9 +57,14 @@ function NavigationBar() {
     navigate('/profile');
   };
 
+
   const handleProgress = () => {
     handleUserMenuClose();
     navigate('/progress');
+
+  const handleLearningPlans = () => {
+    handleUserMenuClose();
+    navigate('/learning-plans');
   };
 
   const handleSettings = () => {
@@ -139,6 +144,11 @@ function NavigationBar() {
                 sx={{ textTransform: 'none', display: { xs: 'none', md: 'inline-flex' } }}
               >
                 Community Achievements
+                
+                to="/community/plans"
+                sx={{ textTransform: 'none', display: { xs: 'none', md: 'inline-flex' } }}
+              >
+                Browse Learning Plans
               </Button>
               <IconButton
                 color="inherit"
@@ -190,6 +200,7 @@ function NavigationBar() {
           <Divider />
           <MenuItem onClick={handleViewProfile}>View profile</MenuItem>
           <MenuItem onClick={handleProgress}>My Achievements</MenuItem>
+          <MenuItem onClick={handleLearningPlans}>My Learning Plans</MenuItem>
           <MenuItem onClick={handleSettings}>Settings</MenuItem>
           <Divider />
           <MenuItem onClick={handleSignOut}>Sign out</MenuItem>
