@@ -57,6 +57,11 @@ function NavigationBar() {
     navigate('/profile');
   };
 
+
+  const handleProgress = () => {
+    handleUserMenuClose();
+    navigate('/progress');
+
   const handleLearningPlans = () => {
     handleUserMenuClose();
     navigate('/learning-plans');
@@ -135,6 +140,11 @@ function NavigationBar() {
               <Button
                 color="inherit"
                 component={Link}
+                to="/community/progress"
+                sx={{ textTransform: 'none', display: { xs: 'none', md: 'inline-flex' } }}
+              >
+                Community Achievements
+                
                 to="/community/plans"
                 sx={{ textTransform: 'none', display: { xs: 'none', md: 'inline-flex' } }}
               >
@@ -189,6 +199,7 @@ function NavigationBar() {
           </Box>
           <Divider />
           <MenuItem onClick={handleViewProfile}>View profile</MenuItem>
+          <MenuItem onClick={handleProgress}>My Achievements</MenuItem>
           <MenuItem onClick={handleLearningPlans}>My Learning Plans</MenuItem>
           <MenuItem onClick={handleSettings}>Settings</MenuItem>
           <Divider />
