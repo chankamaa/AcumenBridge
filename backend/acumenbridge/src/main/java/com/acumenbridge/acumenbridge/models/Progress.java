@@ -1,49 +1,63 @@
-// models/Progress.java
-
 package com.acumenbridge.acumenbridge.models;
 
-import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
-@Data
 @Document(collection = "progress")
 public class Progress {
+
     @Id
     private String id;
-    private String userId;
+
     private String achievementType;
     private String head;
     private String description;
     private int completed;
     private int toComplete;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
-    private String template;
+    // Getters and Setters
     
-    
-    // In your Progress.java model
-    private int likes = 0;
-    private Set<String> likedBy = new HashSet<>(); // Track which users liked
-
-    // Add getters and setters
-    public int getLikes() {
-        return likes;
+    public String getId() {
+        return id;
     }
 
-    public void setLikes(int likes) {
-        this.likes = likes;
+    public String getAchievementType() {
+        return achievementType;
     }
 
-    public Set<String> getLikedBy() {
-        return likedBy;
+    public void setAchievementType(String achievementType) {
+        this.achievementType = achievementType;
     }
 
-    public void setLikedBy(Set<String> likedBy) {
-        this.likedBy = likedBy;
+    public String getHead() {
+        return head;
+    }
+
+    public void setHead(String head) {
+        this.head = head;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(int completed) {
+        this.completed = completed;
+    }
+
+    public int getToComplete() {
+        return toComplete;
+    }
+
+    public void setToComplete(int toComplete) {
+        this.toComplete = toComplete;
     }
 }
