@@ -105,7 +105,16 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
-   
+    /**
+     * GET /posts/{id}
+     * Return a single post by its ID.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getPostById(@PathVariable String id) {
+        Optional<Post> opt = postRepository.findById(id);
+        return opt.map(ResponseEntity::ok)
+                  .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
     /**
      * PUT /posts/{id}
