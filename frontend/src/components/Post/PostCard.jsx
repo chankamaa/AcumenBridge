@@ -161,7 +161,13 @@ export default function PostCard({
 
       <CardActions disableSpacing>
         {/* Like button */}
-      
+        <Tooltip title={isLiked ? 'Unlike' : 'Like'}>
+          <IconButton onClick={toggleLike}>
+            <Badge badgeContent={likesCount} color="primary">
+              {isLiked ? <FavoriteIcon color="error"/> : <FavoriteBorderIcon />}
+            </Badge>
+          </IconButton>
+        </Tooltip>
 
         {/* Comment button */}
         <Tooltip title="Comments">
