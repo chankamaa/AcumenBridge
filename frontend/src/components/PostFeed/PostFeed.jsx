@@ -8,6 +8,22 @@ export default function PostFeed({ userId, limit, onEdit, onDelete }) {
   const [posts,   setPosts]   = useState([]);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      try {
+        const res = userId
+          ? await getPostsByUser(userId)
+          : await getFeed();
+        setPosts(res.data);
+      } catch (err) {
+        console.error('Error loading posts:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [userId]);
 
   const displayPosts = typeof limit === 'number'
     ? posts.slice(0, limit)
