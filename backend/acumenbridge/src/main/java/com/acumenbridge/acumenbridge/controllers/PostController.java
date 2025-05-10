@@ -120,7 +120,33 @@ public class PostController {
      * PUT /posts/{id}
      * Update a post’s description and mediaUrls. Only the owner may update.
      */
-    
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updatePost(
+            @PathVariable String id,
+            @RequestBody Post updates) {
+
+        Optional<User> optUser = getCurrentUser();
+        if (!optUser.isPresent()) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+        String currentUserId = optUser.get().getId();
+
+        Optional<Post> optPost = postRepository.findById(id);
+        if (!optPost.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        Post existing = optPost.get();
+        if (!existing.getUserId().equals(currentUserId)) {
+            return ResponseEntity.status(403).body("Forbidden");
+        }
+
+        existing.setDescription(updates.getDescription());
+        existing.setMediaUrls(updates.getMediaUrls());
+        existing.setUpdatedAt(Instant.now());
+
+        Post saved = postRepository.save(existing);
+        return ResponseEntity.ok(saved);
+    }
 
     /**
      * DELETE /posts/{id}
