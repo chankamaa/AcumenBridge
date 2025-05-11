@@ -14,6 +14,8 @@ import UserProfilePage from './pages/UserProfilePage/UserProfilePage';
 import SearchPage from './pages/SearchPage/SearchPage';
 import LearningPlans from './pages/LearningPlans/LearningPlans';
 import AllUsersLearningPlans from './pages/LearningPlans/AllUsersLearningPlans';
+import AllUsersProgress from './pages/Progress/AllUsersProgress';
+import Progress from './pages/Progress/Progress';
 
 function App() {
   return (
@@ -33,6 +35,8 @@ function App() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/learning-plans" element={<LearningPlans />} />
           <Route path="/community/plans" element={<AllUsersLearningPlans />} />
+          <Route path="/community/progress" element={<AllUsersProgress />} />
+          <Route path="/progress" element={<Progress />} />
         </Routes>
       </Router>
     </>

@@ -58,6 +58,7 @@ const AllUsersProgress = () => {
           liked: prev[progressId].liked
         }
       }));
+      console.log(err);
       setError('Failed to update like');
     }
   };
