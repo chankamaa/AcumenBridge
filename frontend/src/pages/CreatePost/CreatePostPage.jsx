@@ -7,7 +7,8 @@ export default function CreatePostPage() {
   const [description, setDescription] = useState('');
   const [mediaUrls, setMediaUrls] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  
+//cloud
   const openWidget = () => {
     const widget = window.cloudinary.createUploadWidget(
       {
